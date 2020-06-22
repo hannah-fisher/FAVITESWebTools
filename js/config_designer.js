@@ -10,6 +10,7 @@ var allDeps = new Set();
 var missingModDepsDict = {};
 var validModImpSelections;
 var outputFileName = "CONFIG.json";
+var inputsWidth = "450px";
 
 /*
 divisions on the html page
@@ -83,10 +84,11 @@ the name m also is a link that when clicked opens the module wiki in a new tab
 */
 function makeDiv(m, moduleList){
   var newDiv = document.createElement('div');
+  newDiv.style.width = inputsWidth;
   newDiv.id = m;
   newDiv.className = "mod";
   var a = document.createElement("a");
-  var link = document.createTextNode(m + " ");
+  var link = document.createTextNode(m);
   a.appendChild(link);
   a.href = "https://github.com/niemasd/FAVITES/wiki/Module:-" + m;
   a.target = "_blank";
@@ -94,6 +96,7 @@ function makeDiv(m, moduleList){
   var mOptions = moduleList[m];
   var selector = document.createElement("SELECT");
   selector.id = m + "selector";
+  selector.style.float = "right";
   for (o in mOptions){
     var oStripped = JSON.stringify(o)
     oStripped = oStripped.substring(1, oStripped.length - 1);
@@ -215,7 +218,7 @@ function getMissingDeps(){
     for (dep of notSatisfied){
       actualMissingDeps[dep] = missingDepDict[dep];
     }
-    //if there were even any missing things, add to outer dict 
+    //if there were even any missing things, add to outer dict
     if (Object.keys(actualMissingDeps).length > 0){
       missingModDepsDict[modType] = actualMissingDeps;
     }
@@ -244,15 +247,19 @@ the id of each input text box is the name of the parameter + input
 */
 function makeParameterInputs(){
   document.getElementById("modParametersDiv").innerHTML = "";
+  document.getElementById("modParametersDiv").style.width = inputsWidth;
   if (validModImpSelections){
     document.getElementById("modParametersDiv").innerHTML = "Required parameters for selected module implementations:";
     for (var req in allReqs){
       var newDiv = document.createElement("div");
       newDiv.id = req;
       newDiv.className = "req";
-      newDiv.innerHTML += req + " ";
+      newDiv.innerHTML += req;
       var textInput = document.createElement("INPUT");
       textInput.setAttribute("type", "text");
+      textInput.style.float = "right";
+      textInput.style.clear = "both";
+      textInput.size = 10;
       textInput.id = req + "input";
       newDiv.appendChild(textInput);
       newDiv.innerHTML += "<br>";
@@ -393,20 +400,3 @@ function exportConfig(){
   link.download = outputFileName;
   link.click();
 }
-
-/*
-PROBLEM
-
-checking dependencies are met
-assumed that each dependency need could only be fulufilled by 1 possible module implementation
-this is wrong
-for some dependencies, there are multiple possible options to satisfy the dependency need
-
-previously stored dependencies as dict from key (string) to value (string)
-need now to store as dict from key (string) to value (array of strings)
-
-where changes need to be made:
-collecting / storing dependencies
-checking whether dependencies are met
-displaying dependency needs
-*/
