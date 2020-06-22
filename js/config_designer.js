@@ -156,6 +156,18 @@ function getModImpSelections(){
 }
 
 /*
+function that gets the values of the modImpSelections dictionary
+returns them in an array
+*/
+function getModImpSelectionsValues(){
+  values = [];
+  for (var key in modImpSelections){
+    values.push(modImpSelections[key]);
+  }
+  return values;
+}
+
+/*
 function that is called when the first set button is pressed
 gets all the dependencies
 determines which dependencies are missing for each mod imp selection
@@ -164,7 +176,7 @@ missingModDepsDict is a dictionary with:
 key = module type (ex: ContactNetwork)
 value = dictionary with:
   key = module type of dependency
-  value = needed implementation of that module
+  value = list of possible satisfactory implementations of that module
 dont need to store module implementation selection, can retrieve from other dict
 */
 function getMissingDeps(){
@@ -176,14 +188,36 @@ function getMissingDeps(){
     for (var n in allThisDeps){
       var dep = allThisDeps[n]; //dep is a compound word
       var depArr = dep.split("_");
-      //if the thing is actually missing:
-      if (modImpSelections[depArr[0]] != depArr[1]){
-          missingDepDict[depArr[0]] = depArr[1];
+      //add everything to missing dep dict, regardless of if it is actually missing
+      if (depArr[0] in missingDepDict){
+        missingDepDict[depArr[0]].push(depArr[1]);
+      }
+      else{
+        missingDepDict[depArr[0]] = [depArr[1]];
       }
     }
-    //if there were even any missing things
-    if (Object.keys(missingDepDict).length > 0){
-      missingModDepsDict[modType] = missingDepDict;
+    //make a list of the not satisfied dependencies (as module implmenetation types)
+    var notSatisfied = [];
+    for (var depType in missingDepDict){
+      var valueList = missingDepDict[depType];
+      var satisfied = false;
+      for (v of valueList){
+        if (modImpSelections[depType] == v){
+          satisfied = true;
+        }
+      }
+      if (!satisfied){
+        notSatisfied.push(depType);
+      }
+    }
+    //make a dictionary of the actual missing deps
+    var actualMissingDeps = {};
+    for (dep of notSatisfied){
+      actualMissingDeps[dep] = missingDepDict[dep];
+    }
+    //if there were even any missing things, add to outer dict 
+    if (Object.keys(actualMissingDeps).length > 0){
+      missingModDepsDict[modType] = actualMissingDeps;
     }
   }
 }
@@ -359,3 +393,20 @@ function exportConfig(){
   link.download = outputFileName;
   link.click();
 }
+
+/*
+PROBLEM
+
+checking dependencies are met
+assumed that each dependency need could only be fulufilled by 1 possible module implementation
+this is wrong
+for some dependencies, there are multiple possible options to satisfy the dependency need
+
+previously stored dependencies as dict from key (string) to value (string)
+need now to store as dict from key (string) to value (array of strings)
+
+where changes need to be made:
+collecting / storing dependencies
+checking whether dependencies are met
+displaying dependency needs
+*/
