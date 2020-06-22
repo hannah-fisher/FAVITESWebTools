@@ -345,7 +345,12 @@ function getConfigString(){
   lines.push("");
   lines.push("     # Parameter Choices");
   for (p in allReqs){
-    lines.push('     ' + '"' + p + '": ' + '"' + allReqs[p] + '",');
+    if (isNaN(allReqs[p])){
+      lines.push('     ' + '"' + p + '": ' + '"' + allReqs[p] + '",');
+    }
+    else{
+      lines.push('     ' + '"' + p + '": ' + allReqs[p] + ',');
+    }
   }
   lines.push("}");
   returnString = "";
