@@ -269,14 +269,23 @@ function makeParameterInputs(){
 }
 
 /*
-Display all of the necessary dependencies, based on the selected module implementations
+If all dependencies are met, display links to wiki
+If all dependencies are not met, display all necessary dependencies
+all based on selected module implementations
 In the depListDiv
 */
 var depListPar = document.createElement("p");
 document.getElementById("depListDiv").appendChild(depListPar);
 function fillDepListPar(){
   if (validModImpSelections){
-    depListPar.innerHTML = "The selected module implementation combination is valid<br>";
+    depListPar.innerHTML = "The selected module implementation combination is valid.<br>";
+    depListPar.innerHTML += "Click any of the links below to learn about the chosen implementations.<br><br>";
+    for (var modType in modImpSelections){
+      var modImp = modImpSelections[modType];
+      var l = "https://github.com/niemasd/FAVITES/wiki/Module:-" + modType + "#" + modType + "_" + modImp;
+      depListPar.innerHTML += modType + ': ' + '<a href=' + l + ' target="_blank">' + modImp + '</a>';
+      depListPar.innerHTML += "<br>";
+    }
   }
   else{
     depListPar.innerHTML = "The selected module implementation combination is not valid. <br>";
@@ -345,7 +354,13 @@ function getConfigString(){
   lines.push("");
   lines.push("     # Parameter Choices");
   for (p in allReqs){
-    lines.push('     ' + '"' + p + '": ' + allReqs[p] + ',');
+    var val = allReqs[p];
+    if (isNaN(val) || val == null || val == ''){ //if it is not a number
+      lines.push('     ' + '"' + p + '": "' + val + '",');
+    }
+    else{ //if it is a number
+      lines.push('     ' + p + ': ' + val + ',');
+    }
   }
   lines.push("}");
   returnString = "";
@@ -353,7 +368,6 @@ function getConfigString(){
     returnString += lines[n] + "\n";
   }
   return returnString;
-
 }
 
 /*
@@ -361,7 +375,7 @@ function to make alert when preview or export config button pressed
 when the module implementation selections are invalid
 */
 function warningAlert(){
-  var w = "Warning!";
+  var w = "Warning! ";
   w += "The module implementations you have selected are not a valid configuration. ";
   w += "It is recommended that you change and reset your module implementation choices ";
   w += "to satisfy all required dependencies. ";
