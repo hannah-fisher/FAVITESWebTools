@@ -359,7 +359,7 @@ function getConfigString(){
       lines.push('     ' + '"' + p + '": "' + val + '",');
     }
     else{ //if it is a number
-      lines.push('     ' + p + ': ' + val + ',');
+      lines.push('     ' + '"' + p + '": ' + val + ',');
     }
   }
   lines.push("}");
