@@ -4,6 +4,10 @@ SHOULD PUT A DESCRIPTION OF THE PROJECT HERE ...
 assumptions:
   newick inputted file is formatted correctly
   all leaf nodes are exactly the same distance from the root
+
+things to note:
+  threshold cuttof is >, not >=
+  if a cluster consists of a single leaf, no branch will be colored for that cluster
 */
 
 /*
@@ -12,7 +16,10 @@ variables that may be used throughout
 var tree;
 var reader;
 var maxDistance; //distance of leaves from root
-var threshold = 0.35; //cutoff distance from leaves
+var threshold = 0.35; //cutoff distance from root
+var clustersList; //list of root nodes of clusters
+var clustersLeafsNamesList = []; //list of concatenated names of leaf nodes in each cluster
+var clusterToColorDict = {0: "blue", 1: "purple", 2: "green", 3: "orange"}; //arbitrary, should be temporary
 
 /*
 Divs on the html page
@@ -60,15 +67,18 @@ function onFileSelect(e){
       textDiv.innerHTML += "Finished loading file and displaying tree";
       calcMaxDistance();
       //showTree();
-      var clustersList = [];
+      clustersList = [];
       getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
-      textDiv.innerHTML += "<br>test<br>";
       textDiv.innerHTML += "Threshold: " + threshold;
-      textDiv.innerHTML += "<br>number of clusters: " + clustersList.length + "<br>";
-      for (var root of clustersList){
-        var nodesInCluster = getNodesBelow(root);
-        textDiv.innerHTML += nodesInCluster + "<br>";
+      textDiv.innerHTML += "<br>Number of clusters: " + clustersList.length + "<br>";
+      for (var i in clustersList){
+        var nodesInCluster = getNodesBelow(clustersList[i]);
+        textDiv.innerHTML += "Cluster " + i + ": " + nodesInCluster + "<br>";
+        clustersLeafsNamesList.push(nodeNameListToString(nodesInCluster));
       }
+      tree = tree.style_edges(edgeStyler)
+      tree = tree.style_nodes(nodeStyler)
+      textDiv.innerHTML += "<br>Styled<br>";
 
     }
   }
@@ -106,7 +116,6 @@ uses recursion
 the root of each cluster is appended to the clustersList
 */
 function getClusters(root, distanceAlready, clustersList){
-  textDiv.innerHTML += "<br>in getClusters";
   for (var child of root.children){
     var dist = parseFloat(child.attribute);
     if (dist + distanceAlready > threshold){
@@ -121,6 +130,8 @@ function getClusters(root, distanceAlready, clustersList){
 /*
 function to get the name of all the leaf nodes in a given tree
 really, given the root node
+this works on both json style nodes and original nodes ... ?
+  ^ totally not sure if that statement is true, but I sure hope it is
 */
 function getNodesBelow(root){
   var nodeList = [];
@@ -142,3 +153,59 @@ function getNodesBelowHelper(root, nodeList){
     }
   }
 }
+
+/*
+function to style the branches
+*/
+function edgeStyler(dom_element, edge_object){
+  var thisS = nodeNameListToString(getNodesBelow(edge_object.source));
+  for (var i in clustersLeafsNamesList){
+    var s = clustersLeafsNamesList[i];
+    if (s.includes(thisS)){
+      dom_element.style("stroke", clusterToColorDict[i % 4]);
+    }
+  }
+}
+
+/*
+function to turn a list of node names into a single string
+*/
+function nodeNameListToString(nodeNameList){
+  var s = "";
+  for (var n of nodeNameList){
+    s += n;
+  }
+  return s;
+}
+
+
+/*
+function to style the nodes
+*/
+function nodeStyler(){
+  //CURRENTLY DOES NOTHING - SHOULD CHANGE THAT
+}
+
+/*
+how to - color coding branches and nodes by clusters
+
+var clustering = {}; is a dictionary mapping node names to clusters
+var coloring_scheme = d3.scale.category10(); default scheme to color by date
+
+function edgeStyler(dom_element, edge_object) {
+  dom_element.style("stroke", "cluster" in edge_object.target ? coloring_scheme(edge_object.target.cluster) : null);
+}
+
+function nodeStyler(dom_element, node_object) {
+  if ("bootstrap" in node_object && node_object.bootstrap) {
+    var label = dom_element.selectAll(".bootstrap");
+    if (label.empty()) {
+      dom_element.append("text").classed("bootstrap", true).text(node_object.bootstrap).attr("dx", ".3em").attr("text-anchor", "start").attr("alignment-baseline", "middle");
+    }
+  }
+}
+
+
+
+
+*/
