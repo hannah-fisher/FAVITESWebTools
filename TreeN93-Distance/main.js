@@ -6,14 +6,9 @@ assumptions:
   all leaf nodes are exactly the same distance from the root
 
 things to note:
-  threshold cuttof is >, not >=
+  threshold cuttof is >=, not >
   if a cluster consists of a single leaf, no branch will be colored for that cluster
-  if threshold > maxDistance, problems occur
-
-PROBLEM - SCROLL GUIDE THING
-  it uses the height of the entire page (from scroll bar range)
-  but, should only be height of the tree svg
-  problem is also for width
+  threshold is distance from leaves, not distance from root 
 */
 
 /*
@@ -22,20 +17,17 @@ variables that may be used throughout
 var tree; //holds the phylotree
 var reader; //FileReader object to read in the selected newick file
 var maxDistance; //distance of leaves from root
-var threshold = 0.035; //cutoff distance from root
-var clustersList; //list of root nodes of clusters
+var threshold = 0.00001; //cutoff distance from leaves
+var clustersList = []; //list of root nodes of clusters
 var clustersLeafsNamesList = []; //list of concatenated names of leaf nodes in each cluster
 var clusterToColorDict = {0: "blue", 1: "purple", 2: "green", 3: "orange"}; //arbitrary colors for clusters
-var guideTree;
-var guideHeight = 400;
-var guideWidth = 400;
+var guideTree; //same shape as tree, but different settings
+var guideHeight = 400; //height of box holding guide tree
+var guideWidth = 400; //width of box holding guide tree
 
 /*
 Divs on the html page
 */
-var selectFileDiv = document.createElement("DIV");
-document.body.appendChild(selectFileDiv);
-
 var treeDisplayDiv = document.createElement("DIV");
 document.body.appendChild(treeDisplayDiv);
 
@@ -44,6 +36,9 @@ document.body.appendChild(textDiv);
 
 var guideTreeDisplayDiv = document.createElement("DIV");
 document.body.appendChild(guideTreeDisplayDiv);
+
+var buttonsDiv = document.createElement("DIV");
+document.body.appendChild(buttonsDiv);
 
 /*
 make the svg that the tree is displayed on
@@ -79,40 +74,71 @@ add some style to the textDiv
 */
 textDiv.style["position"] = "fixed";
 textDiv.style["width"] = "300px";
-textDiv.style["height"] = "200px";
-textDiv.style["top"] = "25px";
-textDiv.style["right"] = "475px";
+textDiv.style["height"] = "75px";
+textDiv.style["top"] = "125px";
+textDiv.style["left"] = "25px";
 textDiv.style["border-style"] = "solid";
 textDiv.style["border-color"] = "black";
 textDiv.style["border-width"] = "1px";
 textDiv.style["background"] = "white";
+textDiv.style["padding"] = "5px";
+
+/*
+add some style to the buttonsDiv
+*/
+buttonsDiv.style["position"] = "fixed";
+buttonsDiv.style["width"] = "300px";
+buttonsDiv.style["height"] = "75px";
+buttonsDiv.style["top"] = "25px";
+buttonsDiv.style["left"] = "25px";
+buttonsDiv.style["border-style"] = "solid";
+buttonsDiv.style["border-color"] = "black";
+buttonsDiv.style["border-width"] = "1px";
+buttonsDiv.style["background"] = "white";
+buttonsDiv.style["padding"] = "5px";
 
 /*
 make the button to select a nwk file
-put it in the selectFileDiv
+put it in the buttonsDiv
 */
-selectFileDiv.appendChild(document.createElement("BR"));
 var fileInputter = document.createElement("INPUT");
 fileInputter.setAttribute("type", "file");
-selectFileDiv.appendChild(fileInputter);
-selectFileDiv.appendChild(document.createElement("BR"));
+buttonsDiv.appendChild(fileInputter);
+
+/*
+make the text input to set the threshold value
+add it to the buttonsDiv
+and add onchange function
+*/
+var thresholdInput = document.createElement("INPUT");
+thresholdInput.setAttribute("type", "text");
+thresholdInput.setAttribute("placeholder", "Threshold value");
+thresholdInput.setAttribute("size", 12);
+buttonsDiv.appendChild(thresholdInput);
+thresholdInput.onchange = function(){
+  threshold = parseFloat(thresholdInput.value);
+  if (threshold <= maxDistance && threshold >= 0){
+    clustersList = [];
+    clustersLeafsNamesList = [];
+    doEverythingTreeClusters();
+    makeGuideTree();
+  }
+};
+
 
 /*
 add functionality to the fileInputter button
 */
 fileInputter.addEventListener("change", onFileSelect);
 function onFileSelect(e){
-  textDiv.innerHTML = "<br>";
   var files = e.target.files;
   if (files.length == 1){
     var f = files[0];
-    textDiv.innerHTML += "Found file: " + f.name + "<br>";
     reader = new FileReader();
     reader.readAsText(f);
     reader.onload = function(e){
       tree = d3.layout.phylotree().svg(d3.select("#tree_display"));
       tree(d3.layout.newick_parser(reader.result)).layout();
-      textDiv.innerHTML += "Finished loading file and displaying tree";
       calcMaxDistance();
       doEverythingTreeClusters();
       makeGuideTree();
@@ -166,6 +192,7 @@ function makeGuideTree(){
   tree.selection_callback(function(selected){
     guide_tree.sync_edge_labels();
   })
+  guideTree = guideTree.style_edges(edgeStylerReset);
   guideTree = guideTree.style_edges(edgeStyler);
   d3.layout.phylotree.trigger_refresh(guideTree);
 }
@@ -175,15 +202,17 @@ function that does all of the cluster calculations and displaying
 called anytime the threshold distance is changed
 */
 function doEverythingTreeClusters(){
+  textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
   clustersList = [];
   getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
-  textDiv.innerHTML += "<br>Number of clusters: " + clustersList.length + "<br>";
+  textDiv.innerHTML += "<br>Number of clusters: " + clustersList.length;
   for (var i in clustersList){
     var nodesInCluster = getNodesBelow(clustersList[i]);
-    //textDiv.innerHTML += "Cluster " + i + ": " + nodesInCluster + "<br>";
     clustersLeafsNamesList.push(nodeNameListToString(nodesInCluster));
   }
+  tree = tree.style_edges(edgeStylerReset);
+  d3.layout.phylotree.trigger_refresh(tree);
   tree = tree.style_edges(edgeStyler)
   tree = tree.style_nodes(nodeStyler)
   d3.layout.phylotree.trigger_refresh(tree);
@@ -203,7 +232,7 @@ function calcMaxDistance(){
     children = c.children;
   }
   maxDistance = d;
-  textDiv.innerHTML += "<br>Distance of leaves from root: " + maxDistance + "<br>";
+  textDiv.innerHTML += "Distance of leaves from root: " + maxDistance + "<br>";
 }
 
 /*
@@ -223,7 +252,7 @@ the root of each cluster is appended to the clustersList
 function getClusters(root, distanceAlready, clustersList){
   for (var child of root.children){
     var dist = parseFloat(child.attribute);
-    if (dist + distanceAlready > threshold){
+    if (dist + distanceAlready >= (maxDistance - threshold)){
       clustersList.push(child);
     }
     else{
@@ -273,6 +302,15 @@ function edgeStyler(dom_element, edge_object){
 }
 
 /*
+another function to style the branches
+resets all the branches to null
+needs to be called after threshold is changed
+*/
+function edgeStylerReset(dom_element, edge_object){
+  dom_element.style("stroke", null);
+}
+
+/*
 function to turn a list of node names into a single string
 */
 function nodeNameListToString(nodeNameList){
@@ -282,7 +320,6 @@ function nodeNameListToString(nodeNameList){
   }
   return s;
 }
-
 
 /*
 function to style the nodes
