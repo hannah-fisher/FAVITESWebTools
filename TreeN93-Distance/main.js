@@ -29,15 +29,12 @@ var guideWidth = 400; //width of box holding guide tree
 Divs on the html page
 */
 var treeDisplayDiv = document.createElement("DIV");
-document.body.appendChild(treeDisplayDiv);
-
 var textDiv = document.createElement("DIV");
-document.body.appendChild(textDiv);
-
 var guideTreeDisplayDiv = document.createElement("DIV");
-document.body.appendChild(guideTreeDisplayDiv);
-
 var buttonsDiv = document.createElement("DIV");
+document.body.appendChild(treeDisplayDiv);
+document.body.appendChild(textDiv);
+document.body.appendChild(guideTreeDisplayDiv);
 document.body.appendChild(buttonsDiv);
 
 /*
@@ -47,7 +44,6 @@ put it in the treeDisplayDiv
 var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg.id = "tree_display";
 treeDisplayDiv.appendChild(svg);
-//svg.setAttribute("transform", "scale(-1,1)");
 
 /*
 make the svg that the guide tree is displayed on
@@ -56,48 +52,62 @@ put it in the guideTreeDisplayDiv
 var svg_guideTree = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg_guideTree.id = "tree_guide";
 guideTreeDisplayDiv.appendChild(svg_guideTree);
-//svg_guideTree.setAttribute("transform", "scale(-1,1)");
 
 /*
 add some style to the guideTreeDisplayDiv
 */
-guideTreeDisplayDiv.style["position"] = "fixed";
-guideTreeDisplayDiv.style["top"] = "25px";
-guideTreeDisplayDiv.style["right"] = "25px";
-guideTreeDisplayDiv.style["border-style"] = "solid";
-guideTreeDisplayDiv.style["border-color"] = "black";
-guideTreeDisplayDiv.style["border-width"] = "1px";
-guideTreeDisplayDiv.style["background"] = "white";
-guideTreeDisplayDiv.style["width"] = guideWidth + "px";
-guideTreeDisplayDiv.style["height"] = guideHeight + "px";
+var guideTreeDisplayDivStyle = {
+  "position": "fixed",
+  "top": "25px",
+  "right": "25px",
+  "border-style": "solid",
+  "border-color": "black",
+  "border-width": "1px",
+  "background": "white",
+  "width": (guideWidth + "px"),
+  "height": (guideHeight + "px")
+};
+for (var k of Object.keys(guideTreeDisplayDivStyle)){
+  guideTreeDisplayDiv.style[k] = guideTreeDisplayDivStyle[k];
+}
 
 /*
 add some style to the textDiv
 */
-textDiv.style["position"] = "fixed";
-textDiv.style["width"] = "300px";
-textDiv.style["height"] = "90px";
-textDiv.style["top"] = "175px";
-textDiv.style["left"] = "25px";
-textDiv.style["border-style"] = "solid";
-textDiv.style["border-color"] = "black";
-textDiv.style["border-width"] = "1px";
-textDiv.style["background"] = "white";
-textDiv.style["padding"] = "5px";
+var textDivStyle = {
+  "position": "fixed",
+  "width": "300px",
+  "height": "90px",
+  "top": "200px",
+  "left": "25px",
+  "border-style": "solid",
+  "border-color": "black",
+  "border-width": "1px",
+  "background": "white",
+  "padding": "5px"
+};
+for (var k of Object.keys(textDivStyle)){
+  textDiv.style[k] = textDivStyle[k];
+}
 
 /*
 add some style to the buttonsDiv
 */
-buttonsDiv.style["position"] = "fixed";
-buttonsDiv.style["width"] = "300px";
-buttonsDiv.style["height"] = "125px";
-buttonsDiv.style["top"] = "25px";
-buttonsDiv.style["left"] = "25px";
-buttonsDiv.style["border-style"] = "solid";
-buttonsDiv.style["border-color"] = "black";
-buttonsDiv.style["border-width"] = "1px";
-buttonsDiv.style["background"] = "white";
-buttonsDiv.style["padding"] = "5px";
+var buttonsDivStyle = {
+  "position": "fixed",
+  "width": "300px",
+  "height": "150px",
+  "top": "25px",
+  "left": "25px",
+  "border-style": "solid",
+  "border-color": "black",
+  "border-width": "1px",
+  "background": "white",
+  "padding": "5px"
+};
+for (var k of Object.keys(buttonsDivStyle)){
+  buttonsDiv.style[k] = buttonsDivStyle[k];
+}
 
 /*
 make the button to select a nwk file
@@ -136,6 +146,7 @@ var thresholdSlider = document.createElement("INPUT");
 thresholdSlider.setAttribute("class", "slider");
 thresholdSlider.setAttribute("type", "range");
 buttonsDiv.appendChild(thresholdSlider);
+buttonsDiv.appendChild(document.createElement("br"));
 
 /*
 make function for anytime threshold slider is moved
@@ -162,14 +173,6 @@ function onFileSelect(e){
     reader.readAsText(f);
     reader.onload = function(e){
       tree = d3.layout.phylotree().svg(d3.select("#tree_display"));
-      var line = d3.select("#tree_display")
-        .append("line")
-        .attr("x1", 100)
-        .attr("y1", 0)
-        .attr("x2", 100)
-        .attr("y2", window.innerHeight)
-        .style("stroke", "red")
-        .style("stroke-width", 2);
       tree(d3.layout.newick_parser(reader.result)).layout();
       calcMaxDistance();
       doEverythingTreeClusters();
@@ -178,6 +181,65 @@ function onFileSelect(e){
       thresholdSlider.setAttribute("max", "1000");
     }
   }
+}
+
+/*
+make buttons to preview and download cluster list
+*/
+var previewClustersButton = document.createElement("button");
+var downloadClustersButton = document.createElement("button");
+previewClustersButton.innerHTML = "Preview Clusters";
+downloadClustersButton.innerHTML = "Download Clusters";
+previewClustersButton.addEventListener("click", previewClusters);
+downloadClustersButton.addEventListener("click", downloadClusters);
+buttonsDiv.appendChild(previewClustersButton);
+buttonsDiv.appendChild(downloadClustersButton);
+
+/*
+function to get a string to display the clusters
+called by previewClusters and downloadClusters buttons
+*/
+function getAllClustersString(){
+  s = "SequenceName\tClusterNumber\n";
+  var i = 1;
+  for (var leafListString of clustersLeafsNamesList){
+    var leafList = leafListString.split(",");
+    if (leafList.length == 2){ //singleton
+      s += leafList[0] + "\t-1\n";
+    }
+    else{ //cluster
+      for (var leaf of leafList){
+        if (leaf != ""){
+          s += leaf + "\t" + i + "\n";
+        }
+      }
+      i += 1;
+    }
+  }
+  return s;
+}
+
+/*
+function called by preview clusters button
+opens in new tab
+*/
+function previewClusters(){
+  var page = window.open();
+  page.document.open();
+  page.document.write("<html><body><pre>");
+  page.document.write(getAllClustersString());
+  page.document.write("</pre></body></html>");
+  page.document.close();
+}
+
+/*
+function called by download clusters button
+*/
+function downloadClusters(){
+  var link = document.createElement("a");
+  link.href="data:text/txt," + encodeURIComponent(getAllClustersString());
+  link.download = "clusters.txt";
+  link.click();
 }
 
 /*
@@ -246,6 +308,7 @@ called anytime the threshold distance is changed
 function doEverythingTreeClusters(){
   textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
   clustersList = [];
+  clustersLeafsNamesList = [];
   getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
   var csCounts = calcClustersSinglesCount();
@@ -378,7 +441,7 @@ function to turn a list of node names into a single string
 function nodeNameListToString(nodeNameList){
   var s = "";
   for (var n of nodeNameList){
-    s += n;
+    s += n + ",";
   }
   return s;
 }
