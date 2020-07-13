@@ -20,10 +20,11 @@ var maxDistance; //distance of leaves from root
 var threshold = 1e-10; //cutoff distance from leaves
 var clustersList = []; //list of root nodes of clusters
 var clustersLeafsNamesList = []; //list of concatenated names of leaf nodes in each cluster
-var clusterToColorDict = {0: "blue", 1: "purple", 2: "green", 3: "orange"}; //arbitrary colors for clusters
+var clusterToColorDict = {0: "Green", 1: "Teal", 2: "Navy", 3: "Purple"}; //arbitrary colors for clusters
 var guideTree; //same shape as tree, but different settings
 var guideHeight = 400; //height of box holding guide tree
 var guideWidth = 400; //width of box holding guide tree
+var nodeNameToClusterNum = {};
 
 /*
 Divs on the html page
@@ -134,6 +135,7 @@ thresholdInput.onchange = function(){
     thresholdSlider.value = threshold * 20000;
     clustersList = [];
     clustersLeafsNamesList = [];
+    nodeNameToClusterNum = {};
     doEverythingTreeClusters();
     makeGuideTree();
   }
@@ -156,6 +158,7 @@ thresholdSlider.oninput = function(){
   if (threshold > 0){
     clustersList = [];
     clustersLeafsNamesList = [];
+    nodeNameToClusterNum = {};
     doEverythingTreeClusters();
     makeGuideTree();
   }
@@ -309,6 +312,7 @@ function doEverythingTreeClusters(){
   textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
   clustersList = [];
   clustersLeafsNamesList = [];
+  nodeNameToClusterNum = {};
   getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
   var csCounts = calcClustersSinglesCount();
@@ -317,6 +321,9 @@ function doEverythingTreeClusters(){
   for (var i in clustersList){
     var nodesInCluster = getNodesBelow(clustersList[i]);
     clustersLeafsNamesList.push(nodeNameListToString(nodesInCluster));
+    for (var nodeName of nodesInCluster){
+      nodeNameToClusterNum[nodeName] = i;
+    }
   }
   tree = tree.style_edges(edgeStylerReset);
   d3.layout.phylotree.trigger_refresh(tree);
@@ -450,5 +457,8 @@ function nodeNameListToString(nodeNameList){
 function to style the nodes
 */
 function nodeStyler(dom_element, node_object){
-  //CURRENTLY DOES NOTHING - SHOULD CHANGE THAT
+  var color = clusterToColorDict[nodeNameToClusterNum[node_object.name] % 4];
+  dom_element.style("fill", color);
+
+
 }
