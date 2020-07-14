@@ -2,11 +2,13 @@
 Tool to view phylogenetic trees
 and view clusters based on TN93 distance.
 User can input tree files in the newick format.
-The threshold can be set in an input text bar, or using a range slider.
+The threshold can be set in an input text box, or using a range slider.
+The resulting node clusters can be viewed and downloaded.
 
 assumptions:
   newick inputted file is formatted correctly
   all leaf nodes are exactly the same distance from the root
+  every node has a unique name
 
 things to note:
   threshold cuttof is >=, not >
@@ -28,8 +30,8 @@ var guideTree; //same shape as tree, but different settings
 var guideHeight = 400; //height of box holding guide tree
 var guideWidth = 400; //width of box holding guide tree
 var nodeNameToClusterNum = {};
-var x_spacing = 10;
-var y_spacing = 10;
+var x_spacing = 10; //for tree display
+var y_spacing = 10; //for tree display
 
 /*
 Divs on the html page
@@ -39,11 +41,10 @@ var textDiv = document.createElement("DIV");
 var guideTreeDisplayDiv = document.createElement("DIV");
 var buttons1Div = document.createElement("DIV");
 var buttons2Div = document.createElement("DIV");
-document.body.appendChild(treeDisplayDiv);
-document.body.appendChild(textDiv);
-document.body.appendChild(guideTreeDisplayDiv);
-document.body.appendChild(buttons1Div);
-document.body.appendChild(buttons2Div);
+var divList = [treeDisplayDiv, textDiv, guideTreeDisplayDiv, buttons1Div, buttons2Div];
+for (var div of divList){
+  document.body.appendChild(div);
+}
 
 /*
 make the svg that the tree is displayed on
@@ -85,7 +86,7 @@ thresholdInput.onchange = function(){
   if (threshold <= maxDistance && threshold > 0){
     thresholdSlider.value = threshold * 20000;
     doEverythingTreeClusters();
-    makeGuideTree();
+    updateGuideTree();
   }
 };
 
@@ -105,7 +106,7 @@ thresholdSlider.oninput = function(){
   threshold = this.value * maxDistance / 1000;
   if (threshold > 0){
     doEverythingTreeClusters();
-    makeGuideTree();
+    updateGuideTree();
   }
 }
 
@@ -123,7 +124,7 @@ function onFileSelect(e){
       calcMaxDistance();
       makeTree();
       doEverythingTreeClusters();
-      makeGuideTree();
+      updateGuideTree();
       thresholdSlider.setAttribute("min", "0");
       thresholdSlider.setAttribute("max", "1000");
     }
@@ -208,11 +209,9 @@ function downloadClusters(){
 }
 
 /*
-function to make and display the guide tree
-guide tree is displayed in the svg_guideTree which has id tree_guide
-this is in the div guideTreeDisplayDiv
+function to make the guide tree
 */
-function makeGuideTree(){
+function updateGuideTree(){
   guideTree = d3.layout.phylotree()
     .svg(d3.select("#tree_guide"))
     .options({
@@ -246,7 +245,7 @@ function makeGuideTree(){
     .append('rect')
     .attr('x', 0)
     .attr('y', 0)
-    .style('opacity', .6)
+    .style('opacity', .4)
     .attr('width', x(window.innerWidth))
     .attr('height', y(window.innerHeight));
   document.body.onscroll = function(e){
@@ -342,8 +341,7 @@ function getClusters(root, distanceAlready, clustersList){
 /*
 function to get the name of all the leaf nodes in a given tree
 really, given the root node
-this works on both json style nodes and original nodes ... ?
-  ^ totally not sure if that statement is true, but I sure hope it is
+somehow this works on both json style nodes and original nodes ... ?
 */
 function getNodesBelow(root){
   var nodeList = [];
@@ -384,8 +382,7 @@ function edgeStyler(dom_element, edge_object){
   dom_element.style("stroke", null);
   var thisS = nodeNameListToString(getNodesBelow(edge_object.source));
   for (var i in clustersLeafsNamesList){
-    var s = clustersLeafsNamesList[i];
-    if (s.includes(thisS)){
+    if (clustersLeafsNamesList[i].includes(thisS)){
       dom_element.style("stroke", clusterToColorDict[i % 4]);
     }
   }
@@ -411,34 +408,14 @@ for (var i = 0; i < 4; i ++){
   (i < 2) ? b.xyDisp = "Y" : b.xyDisp = "X";
   (i % 2 == 0) ? b.func = "Expand" : b.func = "Compress";
   b.innerHTML = b.func + " " + b.xyDisp;
+  b.addEventListener("click", function(){
+    var delta = 0;
+    (this.func == "Expand") ? delta = 1 : delta = -1;
+    (this.xyFunc == "X") ? x_spacing += delta : y_spacing += delta;
+    (this.xyFunc == "X") ? tree = tree.spacing_x(x_spacing, true) : tree = tree.spacing_y(y_spacing, true);
+    tree(d3.layout.newick_parser(reader.result)).layout();
+    updateGuideTree();
+  });
   sizeButtons.push(b);
   buttons2Div.appendChild(b);
-}
-
-/*
-add actual functionality to the compress and expand buttons
-*/
-sizeButtons[0].onclick = function(e){
-  x_spacing += 1;
-  tree = tree.spacing_x(x_spacing, true);
-  tree(d3.layout.newick_parser(reader.result)).layout();
-  makeGuideTree();
-};
-sizeButtons[1].onclick = function(e){
-  x_spacing -= 1;
-  tree = tree.spacing_x(x_spacing, true);
-  tree(d3.layout.newick_parser(reader.result)).layout();
-  makeGuideTree();
-}
-sizeButtons[2].onclick = function(e){
-  y_spacing += 1;
-  tree = tree.spacing_y(y_spacing, true);
-  tree(d3.layout.newick_parser(reader.result)).layout();
-  makeGuideTree();
-}
-sizeButtons[3].onclick = function(e){
-  y_spacing -= 1;
-  tree = tree.spacing_y(y_spacing, true);
-  tree(d3.layout.newick_parser(reader.result)).layout();
-  makeGuideTree();
 }
