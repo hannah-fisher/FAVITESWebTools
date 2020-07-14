@@ -4,7 +4,6 @@ and view clusters based on TN93 distance.
 User can input tree files in the newick format.
 The threshold can be set in an input text bar, or using a range slider.
 
-
 assumptions:
   newick inputted file is formatted correctly
   all leaf nodes are exactly the same distance from the root
@@ -61,92 +60,6 @@ put it in the guideTreeDisplayDiv
 var svg_guideTree = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg_guideTree.id = "tree_guide";
 guideTreeDisplayDiv.appendChild(svg_guideTree);
-
-/*
-add some style to the guideTreeDisplayDiv
-*/
-var guideTreeDisplayDivStyle = {
-  "position": "fixed",
-  "top": "25px",
-  "right": "25px",
-  "border-style": "solid",
-  "border-color": "black",
-  "border-width": "1px",
-  "background": "white",
-  "width": (guideWidth + "px"),
-  "height": (guideHeight + "px")
-};
-for (var k of Object.keys(guideTreeDisplayDivStyle)){
-  guideTreeDisplayDiv.style[k] = guideTreeDisplayDivStyle[k];
-}
-
-/*
-add some style to the treeDisplayDiv
-*/
-var treeDisplayDivStyle = {
-  "background": "white",
-  "margin": "5px"
-};
-for (var k of Object.keys(treeDisplayDivStyle)){
-  treeDisplayDiv.style[k] = treeDisplayDivStyle[k];
-}
-
-/*
-add some style to the textDiv
-*/
-var textDivStyle = {
-  "position": "fixed",
-  "width": "300px",
-  "height": "90px",
-  "top": "200px",
-  "right": "450px",
-  "border-style": "solid",
-  "border-color": "black",
-  "border-width": "1px",
-  "background": "white",
-  "padding": "5px"
-};
-for (var k of Object.keys(textDivStyle)){
-  textDiv.style[k] = textDivStyle[k];
-}
-
-/*
-add some style to the buttonsDiv
-*/
-var buttons1DivStyle = {
-  "position": "fixed",
-  "width": "300px",
-  "height": "150px",
-  "top": "25px",
-  "right": "450px",
-  "border-style": "solid",
-  "border-color": "black",
-  "border-width": "1px",
-  "background": "white",
-  "padding": "5px"
-};
-for (var k of Object.keys(buttons1DivStyle)){
-  buttons1Div.style[k] = buttons1DivStyle[k];
-}
-
-/*
-add some style to the buttons2 div
-*/
-var buttons2DivStyle = {
-  "position": "fixed",
-  "width": "200px",
-  "height": "80px",
-  "top": "25px",
-  "right": "775px",
-  "border-style": "solid",
-  "border-color": "black",
-  "border-width": "1px",
-  "background": "white",
-  "padding": "5px"
-};
-for (var k of Object.keys(buttons2DivStyle)){
-  buttons2Div.style[k] = buttons2DivStyle[k];
-}
 
 /*
 make the button to select a nwk file
@@ -410,15 +323,6 @@ function calcMaxDistance(){
 }
 
 /*
-function to display the tree sort of
-*/
-function showTree(){
-  for (var n of tree.get_nodes()){
-    textDiv.innerHTML += "<br>" + n.name + "__" + n.attribute + "__" + n.children;
-  }
-}
-
-/*
 function to get the clusters using the threshold value
 uses recursion
 the root of each cluster is appended to the clustersList
@@ -477,6 +381,7 @@ function nodeNameListToString(nodeNameList){
 function to style the branches
 */
 function edgeStyler(dom_element, edge_object){
+  dom_element.style("stroke", null);
   var thisS = nodeNameListToString(getNodesBelow(edge_object.source));
   for (var i in clustersLeafsNamesList){
     var s = clustersLeafsNamesList[i];
@@ -490,6 +395,7 @@ function edgeStyler(dom_element, edge_object){
 function to style the nodes
 */
 function nodeStyler(dom_element, node_object){
+  dom_element.style("fill", null);
   var color = clusterToColorDict[nodeNameToClusterNum[node_object.name] % 4];
   dom_element.style("fill", color);
 }
