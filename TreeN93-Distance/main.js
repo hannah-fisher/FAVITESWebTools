@@ -1,5 +1,9 @@
 /*
-SHOULD PUT A DESCRIPTION OF THE PROJECT HERE ...
+Tool to view phylogenetic trees
+and view clusters based on TN93 distance.
+User can input tree files in the newick format.
+The threshold can be set in an input text bar, or using a range slider.
+
 
 assumptions:
   newick inputted file is formatted correctly
@@ -25,6 +29,8 @@ var guideTree; //same shape as tree, but different settings
 var guideHeight = 400; //height of box holding guide tree
 var guideWidth = 400; //width of box holding guide tree
 var nodeNameToClusterNum = {};
+var x_spacing = 10;
+var y_spacing = 10;
 
 /*
 Divs on the html page
@@ -32,11 +38,13 @@ Divs on the html page
 var treeDisplayDiv = document.createElement("DIV");
 var textDiv = document.createElement("DIV");
 var guideTreeDisplayDiv = document.createElement("DIV");
-var buttonsDiv = document.createElement("DIV");
+var buttons1Div = document.createElement("DIV");
+var buttons2Div = document.createElement("DIV");
 document.body.appendChild(treeDisplayDiv);
 document.body.appendChild(textDiv);
 document.body.appendChild(guideTreeDisplayDiv);
-document.body.appendChild(buttonsDiv);
+document.body.appendChild(buttons1Div);
+document.body.appendChild(buttons2Div);
 
 /*
 make the svg that the tree is displayed on
@@ -73,6 +81,17 @@ for (var k of Object.keys(guideTreeDisplayDivStyle)){
 }
 
 /*
+add some style to the treeDisplayDiv
+*/
+var treeDisplayDivStyle = {
+  "background": "white",
+  "margin": "5px"
+};
+for (var k of Object.keys(treeDisplayDivStyle)){
+  treeDisplayDiv.style[k] = treeDisplayDivStyle[k];
+}
+
+/*
 add some style to the textDiv
 */
 var textDivStyle = {
@@ -80,7 +99,7 @@ var textDivStyle = {
   "width": "300px",
   "height": "90px",
   "top": "200px",
-  "left": "25px",
+  "right": "450px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
@@ -94,20 +113,39 @@ for (var k of Object.keys(textDivStyle)){
 /*
 add some style to the buttonsDiv
 */
-var buttonsDivStyle = {
+var buttons1DivStyle = {
   "position": "fixed",
   "width": "300px",
   "height": "150px",
   "top": "25px",
-  "left": "25px",
+  "right": "450px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
   "background": "white",
   "padding": "5px"
 };
-for (var k of Object.keys(buttonsDivStyle)){
-  buttonsDiv.style[k] = buttonsDivStyle[k];
+for (var k of Object.keys(buttons1DivStyle)){
+  buttons1Div.style[k] = buttons1DivStyle[k];
+}
+
+/*
+add some style to the buttons2 div
+*/
+var buttons2DivStyle = {
+  "position": "fixed",
+  "width": "200px",
+  "height": "80px",
+  "top": "25px",
+  "right": "775px",
+  "border-style": "solid",
+  "border-color": "black",
+  "border-width": "1px",
+  "background": "white",
+  "padding": "5px"
+};
+for (var k of Object.keys(buttons2DivStyle)){
+  buttons2Div.style[k] = buttons2DivStyle[k];
 }
 
 /*
@@ -116,8 +154,8 @@ put it in the buttonsDiv
 */
 var fileInputter = document.createElement("INPUT");
 fileInputter.setAttribute("type", "file");
-buttonsDiv.appendChild(fileInputter);
-buttonsDiv.appendChild(document.createElement("BR"));
+buttons1Div.appendChild(fileInputter);
+buttons1Div.appendChild(document.createElement("BR"));
 
 /*
 make the text input to set the threshold value
@@ -128,14 +166,11 @@ var thresholdInput = document.createElement("INPUT");
 thresholdInput.setAttribute("type", "text");
 thresholdInput.setAttribute("placeholder", "Threshold value");
 thresholdInput.setAttribute("size", 12);
-buttonsDiv.appendChild(thresholdInput);
+buttons1Div.appendChild(thresholdInput);
 thresholdInput.onchange = function(){
   threshold = parseFloat(thresholdInput.value);
   if (threshold <= maxDistance && threshold > 0){
     thresholdSlider.value = threshold * 20000;
-    clustersList = [];
-    clustersLeafsNamesList = [];
-    nodeNameToClusterNum = {};
     doEverythingTreeClusters();
     makeGuideTree();
   }
@@ -147,8 +182,8 @@ make a slider to set the threshold value
 var thresholdSlider = document.createElement("INPUT");
 thresholdSlider.setAttribute("class", "slider");
 thresholdSlider.setAttribute("type", "range");
-buttonsDiv.appendChild(thresholdSlider);
-buttonsDiv.appendChild(document.createElement("br"));
+buttons1Div.appendChild(thresholdSlider);
+buttons1Div.appendChild(document.createElement("br"));
 
 /*
 make function for anytime threshold slider is moved
@@ -156,9 +191,6 @@ make function for anytime threshold slider is moved
 thresholdSlider.oninput = function(){
   threshold = this.value * maxDistance / 1000;
   if (threshold > 0){
-    clustersList = [];
-    clustersLeafsNamesList = [];
-    nodeNameToClusterNum = {};
     doEverythingTreeClusters();
     makeGuideTree();
   }
@@ -175,15 +207,32 @@ function onFileSelect(e){
     reader = new FileReader();
     reader.readAsText(f);
     reader.onload = function(e){
-      tree = d3.layout.phylotree().svg(d3.select("#tree_display"));
-      tree(d3.layout.newick_parser(reader.result)).layout();
       calcMaxDistance();
+      makeTree();
       doEverythingTreeClusters();
       makeGuideTree();
       thresholdSlider.setAttribute("min", "0");
       thresholdSlider.setAttribute("max", "1000");
     }
   }
+}
+
+/*
+function to make and display the main tree
+tree is displayed in the svg which has id tree_display
+this is in the div treeDisplayDiv
+*/
+function makeTree(){
+  tree = d3.layout.phylotree().svg(d3.select("#tree_display"))
+  .options({
+    "left-offset": 20,
+    "layout": "right-to-left",
+    "show-scale": false,
+    "label-nodes-with-name": false,
+  });
+  tree = tree.spacing_x(x_spacing, true);
+  tree = tree.spacing_y(y_spacing, true);
+  tree(d3.layout.newick_parser(reader.result)).layout();
 }
 
 /*
@@ -195,8 +244,8 @@ previewClustersButton.innerHTML = "Preview Clusters";
 downloadClustersButton.innerHTML = "Download Clusters";
 previewClustersButton.addEventListener("click", previewClusters);
 downloadClustersButton.addEventListener("click", downloadClusters);
-buttonsDiv.appendChild(previewClustersButton);
-buttonsDiv.appendChild(downloadClustersButton);
+buttons1Div.appendChild(previewClustersButton);
+buttons1Div.appendChild(downloadClustersButton);
 
 /*
 function to get a string to display the clusters
@@ -260,7 +309,8 @@ function makeGuideTree(){
       'transitions': false,
       'show-scale': false,
       'brush': false,
-      'selectable': false
+      'selectable': false,
+      "layout": "right-to-left"
     })
     .size([guideHeight, guideWidth])
     .node_circle_size(0);
@@ -273,9 +323,9 @@ function makeGuideTree(){
     .range([0, guideHeight]);
   var line = d3.select("#tree_guide")
     .append("line")
-    .attr("x1", ((maxDistance - threshold) / maxDistance) * guideWidth)
+    .attr("x1", (threshold / maxDistance) * guideWidth)
     .attr("y1", 0)
-    .attr("x2", ((maxDistance - threshold) / maxDistance) * guideWidth)
+    .attr("x2", (threshold / maxDistance) * guideWidth)
     .attr("y2", 400)
     .style("stroke", "red")
     .style("stroke-width", 2);
@@ -299,7 +349,6 @@ function makeGuideTree(){
   tree.selection_callback(function(selected){
     guide_tree.sync_edge_labels();
   })
-  guideTree = guideTree.style_edges(edgeStylerReset);
   guideTree = guideTree.style_edges(edgeStyler);
   d3.layout.phylotree.trigger_refresh(guideTree);
 }
@@ -309,10 +358,10 @@ function that does all of the cluster calculations and displaying
 called anytime the threshold distance is changed
 */
 function doEverythingTreeClusters(){
-  textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
   clustersList = [];
   clustersLeafsNamesList = [];
   nodeNameToClusterNum = {};
+  textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
   getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
   var csCounts = calcClustersSinglesCount();
@@ -325,10 +374,8 @@ function doEverythingTreeClusters(){
       nodeNameToClusterNum[nodeName] = i;
     }
   }
-  tree = tree.style_edges(edgeStylerReset);
-  d3.layout.phylotree.trigger_refresh(tree);
-  tree = tree.style_edges(edgeStyler)
-  tree = tree.style_nodes(nodeStyler)
+  tree = tree.style_edges(edgeStyler);
+  tree = tree.style_nodes(nodeStyler);
   d3.layout.phylotree.trigger_refresh(tree);
 }
 
@@ -340,12 +387,7 @@ function calcClustersSinglesCount(){
   var c = 0;
   var s = 0;
   for (var root of clustersList){
-    if (root.children == null){
-      s += 1;
-    }
-    else{
-      c += 1;
-    }
+    root.children == null ? s += 1 : c += 1;
   }
   return [c, s];
 }
@@ -421,6 +463,17 @@ function getNodesBelowHelper(root, nodeList){
 }
 
 /*
+function to turn a list of node names into a single string
+*/
+function nodeNameListToString(nodeNameList){
+  var s = "";
+  for (var n of nodeNameList){
+    s += n + ",";
+  }
+  return s;
+}
+
+/*
 function to style the branches
 */
 function edgeStyler(dom_element, edge_object){
@@ -434,31 +487,52 @@ function edgeStyler(dom_element, edge_object){
 }
 
 /*
-another function to style the branches
-resets all the branches to null
-needs to be called after threshold is changed
-*/
-function edgeStylerReset(dom_element, edge_object){
-  dom_element.style("stroke", null);
-}
-
-/*
-function to turn a list of node names into a single string
-*/
-function nodeNameListToString(nodeNameList){
-  var s = "";
-  for (var n of nodeNameList){
-    s += n + ",";
-  }
-  return s;
-}
-
-/*
 function to style the nodes
 */
 function nodeStyler(dom_element, node_object){
   var color = clusterToColorDict[nodeNameToClusterNum[node_object.name] % 4];
   dom_element.style("fill", color);
+}
 
+/*
+make buttons to compress and expand tree spacing
+*/
+var sizeButtons = [];
+for (var i = 0; i < 4; i ++){
+  var b = document.createElement("button");
+  b.style.margin = "3px";
+  (i < 2) ? b.xyFunc = "X" : b.xyFunc = "Y";
+  (i < 2) ? b.xyDisp = "Y" : b.xyDisp = "X";
+  (i % 2 == 0) ? b.func = "Expand" : b.func = "Compress";
+  b.innerHTML = b.func + " " + b.xyDisp;
+  sizeButtons.push(b);
+  buttons2Div.appendChild(b);
+}
 
+/*
+add actual functionality to the compress and expand buttons
+*/
+sizeButtons[0].onclick = function(e){
+  x_spacing += 1;
+  tree = tree.spacing_x(x_spacing, true);
+  tree(d3.layout.newick_parser(reader.result)).layout();
+  makeGuideTree();
+};
+sizeButtons[1].onclick = function(e){
+  x_spacing -= 1;
+  tree = tree.spacing_x(x_spacing, true);
+  tree(d3.layout.newick_parser(reader.result)).layout();
+  makeGuideTree();
+}
+sizeButtons[2].onclick = function(e){
+  y_spacing += 1;
+  tree = tree.spacing_y(y_spacing, true);
+  tree(d3.layout.newick_parser(reader.result)).layout();
+  makeGuideTree();
+}
+sizeButtons[3].onclick = function(e){
+  y_spacing -= 1;
+  tree = tree.spacing_y(y_spacing, true);
+  tree(d3.layout.newick_parser(reader.result)).layout();
+  makeGuideTree();
 }
