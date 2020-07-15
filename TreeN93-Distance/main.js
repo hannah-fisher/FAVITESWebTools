@@ -143,6 +143,7 @@ function makeTree(){
     "layout": "right-to-left",
     "show-scale": false,
     "label-nodes-with-name": false,
+    "align-tips": true,
   });
   tree = tree.spacing_x(x_spacing, true);
   tree = tree.spacing_y(y_spacing, true);
