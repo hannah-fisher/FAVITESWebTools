@@ -347,12 +347,10 @@ uses the key/value pairs in modImpSelections and allReqs
 function getConfigString(){
   var lines = [];
   lines.push("{");
-  lines.push("     # Module Implementations");
   for (m in modImpSelections){
     lines.push('     ' + '"' + m + '": ' + '"' + modImpSelections[m] + '",');
   }
   lines.push("");
-  lines.push("     # Parameter Choices");
   for (p in allReqs){
     var val = allReqs[p];
     if (isNaN(val) || val == null || val == ''){ //if it is not a number
