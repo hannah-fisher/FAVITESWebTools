@@ -21,6 +21,7 @@ variables that may be used throughout
 */
 var tree; //holds the phylotree
 var reader; //FileReader object to read in the selected newick file
+var readerResult;
 var maxDistance; //distance of leaves from root
 var threshold = 1e-10; //cutoff distance from leaves
 var clustersList = []; //list of root nodes of clusters
@@ -61,6 +62,25 @@ put it in the guideTreeDisplayDiv
 var svg_guideTree = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg_guideTree.id = "tree_guide";
 guideTreeDisplayDiv.appendChild(svg_guideTree);
+
+/*
+make button to set the tree to the example tree file
+put it in the buttonsDiv
+*/
+var fileChooseExampleButton = document.createElement("BUTTON");
+fileChooseExampleButton.innerHTML = "Load Example Tree";
+fileChooseExampleButton.style.marginBottom = "5px";
+fileChooseExampleButton.addEventListener("click", function(){
+  readerResult = "(((((A: 0.1, B: 0.1): 0.1, C: 0.2): 0.2, D: 0.4): 0.3, ((E: 0.3, F: 0.3): 0.3, G: 0.6): 0.1): 0.3, (H: 0.6, ((I: 0.4, J: 0.4): 0.1, (((K: 0.1, L: 0.1): 0.1, M: 0.2): 0.1, N: 0.3): 0.2): 0.1): 0.4);";
+  threshold = 1e-10;
+  calcMaxDistance();
+  makeTree();
+  doEverythingTreeClusters();
+  updateGuideTree();
+  thresholdSlider.setAttribute("min", "0");
+  thresholdSlider.setAttribute("max", "1000");
+});
+buttons1Div.appendChild(fileChooseExampleButton);
 
 /*
 make the button to select a nwk file
@@ -121,6 +141,7 @@ function onFileSelect(e){
     reader = new FileReader();
     reader.readAsText(f);
     reader.onload = function(e){
+      readerResult = reader.result;
       threshold = 1e-10;
       calcMaxDistance();
       makeTree();
@@ -148,7 +169,7 @@ function makeTree(){
   });
   tree = tree.spacing_x(x_spacing, true);
   tree = tree.spacing_y(y_spacing, true);
-  tree(d3.layout.newick_parser(reader.result)).layout();
+  tree(d3.layout.newick_parser(readerResult)).layout();
 }
 
 /*
@@ -228,7 +249,7 @@ function updateGuideTree(){
     })
     .size([guideHeight - 6, guideWidth - 6])
     .node_circle_size(0);
-  guideTree(d3.layout.newick_parser(reader.result)).layout();
+  guideTree(d3.layout.newick_parser(readerResult)).layout();
   var x = d3.scale.linear()
     .domain([0, document.body.scrollWidth])
     .range([0, guideWidth - 6]);
@@ -276,7 +297,7 @@ function doEverythingTreeClusters(){
   clustersLeafsNamesList = [];
   nodeNameToClusterNum = {};
   textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
-  getClusters(d3.layout.newick_parser(reader.result).json, 0.0, clustersList);
+  getClusters(d3.layout.newick_parser(readerResult).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
   var csCounts = calcClustersSinglesCount();
   textDiv.innerHTML += "<br>Number of singletons: " + csCounts[1];
@@ -310,7 +331,7 @@ function calcClustersSinglesCount(){
 function to calculate the distance of the leaf nodes from the root
 */
 function calcMaxDistance(){
-  var json_and_error = d3.layout.newick_parser(reader.result);
+  var json_and_error = d3.layout.newick_parser(readerResult);
   var json = json_and_error.json
   var d = 0;
   var children = json.children;
@@ -415,7 +436,7 @@ for (var i = 0; i < 4; i ++){
     (this.func == "Expand") ? delta = 1 : delta = -1;
     (this.xyFunc == "X") ? x_spacing += delta : y_spacing += delta;
     (this.xyFunc == "X") ? tree = tree.spacing_x(x_spacing, true) : tree = tree.spacing_y(y_spacing, true);
-    tree(d3.layout.newick_parser(reader.result)).layout();
+    tree(d3.layout.newick_parser(readerResult)).layout();
     updateGuideTree();
   });
   sizeButtons.push(b);

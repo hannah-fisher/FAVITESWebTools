@@ -40,7 +40,7 @@ var textDivStyle = {
   "position": "fixed",
   "width": "300px",
   "height": "90px",
-  "top": "200px",
+  "top": "225px",
   "right": "450px",
   "border-style": "solid",
   "border-color": "black",
@@ -58,7 +58,7 @@ add some style to the buttonsDiv
 var buttons1DivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "150px",
+  "height": "175px",
   "top": "25px",
   "right": "450px",
   "border-style": "solid",
