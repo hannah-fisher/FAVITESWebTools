@@ -15,7 +15,8 @@ var guideTreeDisplayDivStyle = {
   "border-width": "1px",
   "background": "white",
   "width": (guideWidth + "px"),
-  "height": (guideHeight + "px")
+  "height": (guideHeight + "px"),
+  "padding": "3px"
 };
 for (var k of Object.keys(guideTreeDisplayDivStyle)){
   guideTreeDisplayDiv.style[k] = guideTreeDisplayDivStyle[k];

@@ -121,6 +121,7 @@ function onFileSelect(e){
     reader = new FileReader();
     reader.readAsText(f);
     reader.onload = function(e){
+      threshold = 1e-10;
       calcMaxDistance();
       makeTree();
       doEverythingTreeClusters();
@@ -139,7 +140,7 @@ this is in the div treeDisplayDiv
 function makeTree(){
   tree = d3.layout.phylotree().svg(d3.select("#tree_display"))
   .options({
-    "left-offset": 20,
+    "left-offset": 10,
     "layout": "right-to-left",
     "show-scale": false,
     "label-nodes-with-name": false,
@@ -225,21 +226,21 @@ function updateGuideTree(){
       'selectable': false,
       "layout": "right-to-left"
     })
-    .size([guideHeight, guideWidth])
+    .size([guideHeight - 6, guideWidth - 6])
     .node_circle_size(0);
   guideTree(d3.layout.newick_parser(reader.result)).layout();
   var x = d3.scale.linear()
     .domain([0, document.body.scrollWidth])
-    .range([0, guideWidth]);
+    .range([0, guideWidth - 6]);
   var y = d3.scale.linear()
     .domain([0, document.body.scrollHeight])
-    .range([0, guideHeight]);
+    .range([0, guideHeight - 6]);
   var line = d3.select("#tree_guide")
     .append("line")
     .attr("x1", (threshold / maxDistance) * guideWidth)
     .attr("y1", 0)
     .attr("x2", (threshold / maxDistance) * guideWidth)
-    .attr("y2", 400)
+    .attr("y2", guideHeight)
     .style("stroke", "red")
     .style("stroke-width", 2);
   var rect = d3.select("#tree_guide")
