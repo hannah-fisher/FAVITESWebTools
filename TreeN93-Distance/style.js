@@ -39,7 +39,7 @@ add some style to the textDiv
 var textDivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "90px",
+  "height": "115px",
   "top": "225px",
   "right": "450px",
   "border-style": "solid",

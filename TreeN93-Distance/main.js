@@ -15,6 +15,8 @@ things to note:
   if a cluster consists of a single leaf, no branch will be colored for that cluster
   threshold is distance from leaves, not distance from root
   branch lengths could be zero
+  SOMETIMES THERE ARE CLUSTER COLLECTION MISTAKES
+  THIS IS BECAUSE SOME DECIMAL NUMBERS CANNOT BE REPRESENTED EXACTLY IN BINARY
 */
 
 /*
@@ -34,6 +36,9 @@ var guideWidth = 400; //width of box holding guide tree
 var nodeNameToClusterNum = {};
 var x_spacing = 10; //for tree display
 var y_spacing = 10; //for tree display
+var numLeaves;
+var precision = 7; //how many decimals on distance numbers
+var sliderSize = 100; //how many different locations are on the slider
 
 /*
 Divs on the html page
@@ -46,6 +51,19 @@ var buttons2Div = document.createElement("DIV");
 var divList = [treeDisplayDiv, textDiv, guideTreeDisplayDiv, buttons1Div, buttons2Div];
 for (var div of divList){
   document.body.appendChild(div);
+}
+
+/*
+function to update the text div contents
+*/
+function updateTextDiv(){
+  textDiv.innerHTML = "";
+  textDiv.innerHTML += "Number of leaves: " + numLeaves + "<br>";
+  textDiv.innerHTML += "Height: " + maxDistance + "<br>";
+  textDiv.innerHTML += "Threshold: " + threshold + "<br>";
+  var csCounts = calcClustersSinglesCount();
+  textDiv.innerHTML += "Number of clusters: " + csCounts[0] + "<br>";
+  textDiv.innerHTML += "Number of singletons: " + csCounts[1] + "<br>";
 }
 
 /*
@@ -76,10 +94,11 @@ fileChooseExampleButton.addEventListener("click", function(){
   threshold = 0;
   makeTree();
   calcMaxDistance();
+  calculateNumLeaves();
   doEverythingTreeClusters();
   updateGuideTree();
   thresholdSlider.setAttribute("min", "0");
-  thresholdSlider.setAttribute("max", "1000");
+  thresholdSlider.setAttribute("max", sliderSize.toString());
 });
 buttons1Div.appendChild(fileChooseExampleButton);
 
@@ -105,7 +124,7 @@ buttons1Div.appendChild(thresholdInput);
 thresholdInput.onchange = function(){
   threshold = parseFloat(thresholdInput.value);
   if (threshold <= maxDistance && threshold >= 0){
-    thresholdSlider.value = threshold * 1000 / maxDistance;
+    thresholdSlider.value = threshold * sliderSize / maxDistance;
     doEverythingTreeClusters();
     updateGuideTree();
   }
@@ -124,8 +143,8 @@ buttons1Div.appendChild(document.createElement("br"));
 make function for anytime threshold slider is moved
 */
 thresholdSlider.oninput = function(){
-  threshold = this.value * maxDistance / 1000;
-  thresholdInput.value = this.value * maxDistance / 1000;
+  threshold = this.value * maxDistance / sliderSize;
+  thresholdInput.value = this.value * maxDistance / sliderSize;
   doEverythingTreeClusters();
   updateGuideTree();
 }
@@ -145,10 +164,11 @@ function onFileSelect(e){
       threshold = 0;
       makeTree();
       calcMaxDistance();
+      calculateNumLeaves();
       doEverythingTreeClusters();
       updateGuideTree();
       thresholdSlider.setAttribute("min", "0");
-      thresholdSlider.setAttribute("max", "1000");
+      thresholdSlider.setAttribute("max", sliderSize.toString());
     }
   }
 }
@@ -296,12 +316,8 @@ function doEverythingTreeClusters(){
   clustersList = [];
   clustersLeafsNamesList = [];
   nodeNameToClusterNum = {};
-  textDiv.innerHTML = "Tree height: " + maxDistance + "<br>";
   getClusters(d3.layout.newick_parser(readerResult).json, 0.0, clustersList);
-  textDiv.innerHTML += "Threshold: " + threshold;
-  var csCounts = calcClustersSinglesCount();
-  textDiv.innerHTML += "<br>Number of singletons: " + csCounts[1];
-  textDiv.innerHTML += "<br>Number of clusters: " + csCounts[0];
+  updateTextDiv();
   for (var i in clustersList){
     var nodesInCluster = getNodesBelow(clustersList[i]);
     clustersLeafsNamesList.push(nodeNameListToString(nodesInCluster));
@@ -341,13 +357,13 @@ function calcMaxDistance(){
     children = c.children;
   }
   maxDistance = d;
-  textDiv.innerHTML += "Distance of leaves from root: " + maxDistance + "<br>";
 }
 
 /*
 function to get the clusters using the threshold value
 uses recursion
 the root of each cluster is appended to the clustersList
+had to really convert the number and use toFixed
 */
 function getClusters(root, distanceAlready, clustersList){
   if (distanceAlready >= (maxDistance - threshold)){
@@ -356,8 +372,9 @@ function getClusters(root, distanceAlready, clustersList){
   else{
     if (root.children != null){
       for (var child of root.children){
-        var dist = parseFloat(child.attribute);
-        getClusters(child, distanceAlready + dist, clustersList);
+        var dist = parseFloat(Number(child.attribute).toFixed(precision));
+        var passDist = parseFloat(Number(dist + distanceAlready).toFixed(precision));
+        getClusters(child, passDist, clustersList);
       }
     }
   }
@@ -398,6 +415,19 @@ function nodeNameListToString(nodeNameList){
     s += n + ",";
   }
   return s;
+}
+
+/*
+function to calculate the number of leaf nodes
+*/
+function calculateNumLeaves(){
+  var c = 0;
+  for (var n of tree.get_nodes()){
+    if (n.children == null){
+      c += 1;
+    }
+  }
+  numLeaves = c;
 }
 
 /*
