@@ -14,6 +14,7 @@ things to note:
   threshold cuttof is >=, not >
   if a cluster consists of a single leaf, no branch will be colored for that cluster
   threshold is distance from leaves, not distance from root
+  branch lengths could be zero
 */
 
 /*
@@ -23,7 +24,7 @@ var tree; //holds the phylotree
 var reader; //FileReader object to read in the selected newick file
 var readerResult;
 var maxDistance; //distance of leaves from root
-var threshold = 1e-10; //cutoff distance from leaves
+var threshold = 0; //cutoff distance from leaves
 var clustersList = []; //list of root nodes of clusters
 var clustersLeafsNamesList = []; //list of concatenated names of leaf nodes in each cluster
 var clusterToColorDict = {0: "Green", 1: "Teal", 2: "Navy", 3: "Purple"}; //arbitrary colors for clusters
@@ -72,9 +73,9 @@ fileChooseExampleButton.innerHTML = "Load Example Tree";
 fileChooseExampleButton.style.marginBottom = "5px";
 fileChooseExampleButton.addEventListener("click", function(){
   readerResult = "(((((A: 0.1, B: 0.1): 0.1, C: 0.2): 0.2, D: 0.4): 0.3, ((E: 0.3, F: 0.3): 0.3, G: 0.6): 0.1): 0.3, (H: 0.6, ((I: 0.4, J: 0.4): 0.1, (((K: 0.1, L: 0.1): 0.1, M: 0.2): 0.1, N: 0.3): 0.2): 0.1): 0.4);";
-  threshold = 1e-10;
-  calcMaxDistance();
+  threshold = 0;
   makeTree();
+  calcMaxDistance();
   doEverythingTreeClusters();
   updateGuideTree();
   thresholdSlider.setAttribute("min", "0");
@@ -103,8 +104,8 @@ thresholdInput.setAttribute("size", 12);
 buttons1Div.appendChild(thresholdInput);
 thresholdInput.onchange = function(){
   threshold = parseFloat(thresholdInput.value);
-  if (threshold <= maxDistance && threshold > 0){
-    thresholdSlider.value = threshold * 20000;
+  if (threshold <= maxDistance && threshold >= 0){
+    thresholdSlider.value = threshold * 1000 / maxDistance;
     doEverythingTreeClusters();
     updateGuideTree();
   }
@@ -124,10 +125,9 @@ make function for anytime threshold slider is moved
 */
 thresholdSlider.oninput = function(){
   threshold = this.value * maxDistance / 1000;
-  if (threshold > 0){
-    doEverythingTreeClusters();
-    updateGuideTree();
-  }
+  thresholdInput.value = this.value * maxDistance / 1000;
+  doEverythingTreeClusters();
+  updateGuideTree();
 }
 
 /*
@@ -142,9 +142,9 @@ function onFileSelect(e){
     reader.readAsText(f);
     reader.onload = function(e){
       readerResult = reader.result;
-      threshold = 1e-10;
-      calcMaxDistance();
+      threshold = 0;
       makeTree();
+      calcMaxDistance();
       doEverythingTreeClusters();
       updateGuideTree();
       thresholdSlider.setAttribute("min", "0");
@@ -296,7 +296,7 @@ function doEverythingTreeClusters(){
   clustersList = [];
   clustersLeafsNamesList = [];
   nodeNameToClusterNum = {};
-  textDiv.innerHTML = "Root to leaf distance: " + maxDistance + "<br>";
+  textDiv.innerHTML = "Tree height: " + maxDistance + "<br>";
   getClusters(d3.layout.newick_parser(readerResult).json, 0.0, clustersList);
   textDiv.innerHTML += "Threshold: " + threshold;
   var csCounts = calcClustersSinglesCount();
@@ -350,13 +350,15 @@ uses recursion
 the root of each cluster is appended to the clustersList
 */
 function getClusters(root, distanceAlready, clustersList){
-  for (var child of root.children){
-    var dist = parseFloat(child.attribute);
-    if (dist + distanceAlready >= (maxDistance - threshold)){
-      clustersList.push(child);
-    }
-    else{
-      getClusters(child, distanceAlready + dist, clustersList);
+  if (distanceAlready >= (maxDistance - threshold)){
+    clustersList.push(root);
+  }
+  else{
+    if (root.children != null){
+      for (var child of root.children){
+        var dist = parseFloat(child.attribute);
+        getClusters(child, distanceAlready + dist, clustersList);
+      }
     }
   }
 }
