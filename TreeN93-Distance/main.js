@@ -39,6 +39,7 @@ var y_spacing = 10; //for tree display
 var numLeaves;
 var precision = 7; //how many decimals on distance numbers
 var sliderSize = 100; //how many different locations are on the slider
+var sortNodesUp = true;
 
 /*
 Divs on the html page
@@ -186,6 +187,7 @@ function makeTree(){
     "show-scale": false,
     "label-nodes-with-name": false,
     "align-tips": true,
+    "selectable": false,
   });
   tree = tree.spacing_x(x_spacing, true);
   tree = tree.spacing_y(y_spacing, true);
@@ -304,6 +306,7 @@ function updateGuideTree(){
   tree.selection_callback(function(selected){
     guide_tree.sync_edge_labels();
   })
+  sortNodes(sortNodesUp);
   guideTree = guideTree.style_edges(edgeStyler);
   d3.layout.phylotree.trigger_refresh(guideTree);
 }
@@ -436,8 +439,17 @@ function to style the branches
 function edgeStyler(dom_element, edge_object){
   dom_element.style("stroke", null);
   var thisS = nodeNameListToString(getNodesBelow(edge_object.source));
+  var nodesBelow = getNodesBelow(edge_object.source);
   for (var i in clustersLeafsNamesList){
-    if (clustersLeafsNamesList[i].includes(thisS)){
+    var thisNamesList = clustersLeafsNamesList[i];
+    var match = true;
+    for (var n of nodesBelow){
+      if (!thisNamesList.includes(n)){
+        match = false;
+        break;
+      }
+    }
+    if (match){
       dom_element.style("stroke", clusterToColorDict[i % 4]);
     }
   }
@@ -469,8 +481,59 @@ for (var i = 0; i < 4; i ++){
     (this.xyFunc == "X") ? x_spacing += delta : y_spacing += delta;
     (this.xyFunc == "X") ? tree = tree.spacing_x(x_spacing, true) : tree = tree.spacing_y(y_spacing, true);
     tree(d3.layout.newick_parser(readerResult)).layout();
+    sortNodes(sortNodesUp);
     updateGuideTree();
   });
   sizeButtons.push(b);
   buttons2Div.appendChild(b);
+}
+
+/*
+make buttons that when pressed it sorts the nodes
+so they are shown in prettier layout on tree
+*/
+var sortTreeUpButton = document.createElement("button");
+sortTreeUpButton.style.margin = "3px";
+sortTreeUpButton.innerHTML += "Sort Up";
+sortTreeUpButton.addEventListener("click", function(){
+  sortNodesUp = true;
+  sortNodes(sortNodesUp);
+});
+buttons2Div.appendChild(sortTreeUpButton);
+var sortTreeDownButton = document.createElement("button");
+sortTreeDownButton.style.margin = "3px";
+sortTreeDownButton.innerHTML += "Sort Down";
+sortTreeDownButton.addEventListener("click",function(){
+  sortNodesUp = false;
+  sortNodes(sortNodesUp);
+});
+buttons2Div.appendChild(sortTreeDownButton);
+
+/*
+function to sort the nodes
+either ascending or descending order based on asc
+*/
+function sortNodes(asc) {
+  tree.traverse_and_compute(function (n){
+    var d = 1;
+    if (n.children && n.children.length){
+      d += d3.max(n.children, function(d){ return d["count_depth"];});
+    }
+    n["count_depth"] = d;
+  });
+  tree.resort_children(function(a,b){
+    return (a["count_depth"] - b["count_depth"]) * (asc ? 1 : -1);
+  });
+  d3.layout.phylotree.trigger_refresh(tree);
+  guideTree.traverse_and_compute(function (n){
+    var d = 1;
+    if (n.children && n.children.length){
+      d += d3.max(n.children, function(d){ return d["count_depth"];});
+    }
+    n["count_depth"] = d;
+  });
+  guideTree.resort_children(function(a,b){
+    return (a["count_depth"] - b["count_depth"]) * (asc ? 1 : -1);
+  });
+  d3.layout.phylotree.trigger_refresh(guideTree);
 }

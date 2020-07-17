@@ -77,7 +77,7 @@ add some style to the buttons2 div
 var buttons2DivStyle = {
   "position": "fixed",
   "width": "200px",
-  "height": "80px",
+  "height": "110px",
   "top": "25px",
   "right": "775px",
   "border-style": "solid",
