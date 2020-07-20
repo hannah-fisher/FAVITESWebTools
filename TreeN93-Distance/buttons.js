@@ -212,6 +212,7 @@ function sortNodes(asc) {
   tree.resort_children(function(a,b){
     return (a["count_depth"] - b["count_depth"]) * (asc ? 1 : -1);
   });
+  branchIndex = 0;
   d3.layout.phylotree.trigger_refresh(tree);
   guideTree.traverse_and_compute(function (n){
     var d = 1;
@@ -223,6 +224,7 @@ function sortNodes(asc) {
   guideTree.resort_children(function(a,b){
     return (a["count_depth"] - b["count_depth"]) * (asc ? 1 : -1);
   });
+  branchIndex = 0;
   d3.layout.phylotree.trigger_refresh(guideTree);
 }
 

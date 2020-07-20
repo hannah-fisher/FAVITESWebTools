@@ -40,6 +40,8 @@ var numLeaves;
 var precision = 7; //how many decimals on distance numbers
 var sliderSize = 100; //how many different locations are on the slider
 var sortNodesUp = true;
+var branchToColorDict = {};
+var branchIndex = 0;
 
 /*
 Divs on the html page
@@ -104,7 +106,7 @@ function makeTree(){
 }
 
 /*
-function to make the guide tree
+function to make and update the guide tree
 */
 function updateGuideTree(){
   guideTree = d3.layout.phylotree()
@@ -157,6 +159,7 @@ function updateGuideTree(){
     guide_tree.sync_edge_labels();
   })
   sortNodes(sortNodesUp);
+  branchIndex = 0;
   guideTree = guideTree.style_edges(edgeStyler);
   d3.layout.phylotree.trigger_refresh(guideTree);
 }
@@ -168,6 +171,7 @@ called anytime the threshold distance is changed
 function doEverythingTreeClusters(){
   clustersList = [];
   clustersLeafsNamesList = [];
+  branchToColorDict = {};
   nodeNameToClusterNum = {};
   getClusters(d3.layout.newick_parser(readerResult).json, 0.0, clustersList);
   updateTextDiv();
@@ -178,6 +182,10 @@ function doEverythingTreeClusters(){
       nodeNameToClusterNum[nodeName] = i;
     }
   }
+  branchIndex = 0;
+  tree = tree.style_edges(edgeStylerDictFiller);
+  d3.layout.phylotree.trigger_refresh(tree);
+  branchIndex = 0;
   tree = tree.style_edges(edgeStyler);
   tree = tree.style_nodes(nodeStyler);
   d3.layout.phylotree.trigger_refresh(tree);
@@ -284,10 +292,11 @@ function calculateNumLeaves(){
 }
 
 /*
-function to style the branches
+function to fill the branchToColorDict
+in the format of edgeStyler to reach all edges
 */
-function edgeStyler(dom_element, edge_object){
-  dom_element.style("stroke", null);
+function edgeStylerDictFiller(dom_element, edge_object){
+  branchIndex += 1;
   var thisS = nodeNameListToString(getNodesBelow(edge_object.source));
   var nodesBelow = getNodesBelow(edge_object.source);
   for (var i in clustersLeafsNamesList){
@@ -300,9 +309,17 @@ function edgeStyler(dom_element, edge_object){
       }
     }
     if (match){
-      dom_element.style("stroke", clusterToColorDict[i % 4]);
+      branchToColorDict[branchIndex] = clusterToColorDict[i % 4];
     }
   }
+}
+
+/*
+function to style the branches
+*/
+function edgeStyler(dom_element, edge_object){
+  branchIndex += 1;
+  dom_element.style("stroke", branchToColorDict[branchIndex]);
 }
 
 /*
