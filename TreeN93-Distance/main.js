@@ -196,11 +196,27 @@ function to add custom menu items to the nodes
 */
 function addCustomNodeMenus(){
   tree.get_nodes().forEach(function(n){
+    var h = calcDistanceNodeToLeaf(n);
     d3.layout.phylotree.add_custom_menu(n,
       function(n){
-        return "Height: " + calcDistanceNodeToLeaf(n);
+        return "Height: " + h;
       },
       function(){},
+      function(){
+        return true;
+      }
+    );
+    d3.layout.phylotree.add_custom_menu(n,
+      function(){
+        return "Snap threshold to here";
+      },
+      function(){
+        threshold = h;
+        thresholdSlider.value = threshold * sliderSize / maxDistance;
+        thresholdInput.value = threshold;
+        doEverythingTreeClusters();
+        updateGuideTree();
+      },
       function(){
         return true;
       }
