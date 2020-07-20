@@ -45,6 +45,7 @@ thresholdInput.onchange = function(){
   threshold = parseFloat(thresholdInput.value);
   if (threshold <= maxDistance && threshold >= 0){
     thresholdSlider.value = threshold * sliderSize / maxDistance;
+    branchIndex = 0;
     doEverythingTreeClusters();
     updateGuideTree();
   }
@@ -65,6 +66,7 @@ make function for anytime threshold slider is moved
 thresholdSlider.oninput = function(){
   threshold = this.value * maxDistance / sliderSize;
   thresholdInput.value = this.value * maxDistance / sliderSize;
+  branchIndex = 0;
   doEverythingTreeClusters();
   updateGuideTree();
 }
@@ -171,6 +173,7 @@ for (var i = 0; i < 4; i ++){
     tree(d3.layout.newick_parser(readerResult)).layout();
     sortNodes(sortNodesUp);
     updateGuideTree();
+    addCustomNodeMenus();
   });
   sizeButtons.push(b);
   buttons2Div.appendChild(b);

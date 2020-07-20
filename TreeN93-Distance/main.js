@@ -41,7 +41,7 @@ var precision = 7; //how many decimals on distance numbers
 var sliderSize = 100; //how many different locations are on the slider
 var sortNodesUp = true;
 var branchToColorDict = {};
-var branchIndex = 0;
+var branchIndex = 0; //used as an index when style_edges is called
 
 /*
 Divs on the html page
@@ -103,6 +103,7 @@ function makeTree(){
   tree = tree.spacing_x(x_spacing, true);
   tree = tree.spacing_y(y_spacing, true);
   tree(d3.layout.newick_parser(readerResult)).layout();
+  addCustomNodeMenus();
 }
 
 /*
@@ -156,7 +157,7 @@ function updateGuideTree(){
     window.scrollTo(new_x, new_y);
   })
   tree.selection_callback(function(selected){
-    guide_tree.sync_edge_labels();
+    guideTree.sync_edge_labels();
   })
   sortNodes(sortNodesUp);
   branchIndex = 0;
@@ -187,8 +188,41 @@ function doEverythingTreeClusters(){
   d3.layout.phylotree.trigger_refresh(tree);
   branchIndex = 0;
   tree = tree.style_edges(edgeStyler);
+  d3.layout.phylotree.trigger_refresh(tree);
+}
+
+/*
+function to add custom menu items to the nodes
+*/
+function addCustomNodeMenus(){
+  tree.get_nodes().forEach(function(n){
+    d3.layout.phylotree.add_custom_menu(n,
+      function(n){
+        return "Height: " + calcDistanceNodeToLeaf(n);
+      },
+      function(){},
+      function(){
+        return true;
+      }
+    );
+  });
+  branchIndex = 0;
+  tree = tree.style_edges(edgeStyler);
   tree = tree.style_nodes(nodeStyler);
   d3.layout.phylotree.trigger_refresh(tree);
+}
+
+/*
+function to calculate the distance of a given node from the leaves
+*/
+function calcDistanceNodeToLeaf(n){
+  var d = 0;
+  var current = n;
+  while (current.children != null){
+    current = current.children[0];
+    d += parseFloat(Number(current.attribute).toFixed(precision));
+  }
+  return d;
 }
 
 /*
@@ -214,7 +248,7 @@ function calcMaxDistance(){
   var children = json.children;
   while (children != null){
     var c = children[0];
-    d += parseFloat(c.attribute);
+    d += parseFloat(Number(c.attribute).toFixed(precision));
     children = c.children;
   }
   maxDistance = d;
