@@ -237,22 +237,7 @@ create button to save main svg
 var saveTreeSVGButton = document.createElement("button");
 saveTreeSVGButton.innerHTML = "Save Tree SVG";
 saveTreeSVGButton.addEventListener("click", function(){
-  var bBox = svg.getBBox();
-  var canvas = document.createElement("canvas");
-  canvas.width = bBox.width;
-  canvas.height = bBox.height;
-  var context = canvas.getContext("2d");
-  var image = new Image();
-  image.src = 'data:image/svg+xml;base64,' + btoa(new XMLSerializer().serializeToString(svg));
-  image.onload = function(){
-    context.drawImage(image, 0, 0);
-    var imageURL = canvas.toDataURL("image/png");
-    var dLink = document.createElement("a");
-    dLink.download = "tree.png";
-    dLink.href = imageURL;
-    dLink.dataset.downloadurl = ["image/png", dLink.download, dLink.href].join(":");
-    dLink.click();
-  }
+  saveTreeSVG(svg);
 });
 buttons1Div.appendChild(saveTreeSVGButton);
 
@@ -262,20 +247,77 @@ create button to save guide tree svg
 var saveGuideTreeSVGButton = document.createElement("button");
 saveGuideTreeSVGButton.innerHTML = "Save Guide Tree SVG";
 saveGuideTreeSVGButton.addEventListener("click", function(){
-  var canvas = document.createElement("canvas");
-  canvas.width = 400;
-  canvas.height = 400;
-  var context = canvas.getContext("2d");
-  var image = new Image();
-  image.src = 'data:image/svg+xml;base64,' + btoa(new XMLSerializer().serializeToString(svg_guideTree));
-  image.onload = function(){
-    context.drawImage(image, 0, 0);
-    var imageURL = canvas.toDataURL("image/png");
-    var dLink = document.createElement("a");
-    dLink.download = "guideTree.png";
-    dLink.href = imageURL;
-    dLink.dataset.downloadurl = ["image/png", dLink.download, dLink.href].join(":");
-    dLink.click();
-  }
+  saveTreeSVG(svg_guideTree);
 });
 buttons1Div.appendChild(saveGuideTreeSVGButton);
+
+/*
+function to save an svg tree, called by button click
+*/
+function saveTreeSVG(svg){
+  svg.setAttribute("version", "1.1");
+  var defsEl = document.createElement("defs");
+  svg.insertBefore(defsEl, svg.firstChild);
+  var styleEl = document.createElement("style");
+  defsEl.appendChild(styleEl);
+  styleEl.setAttribute("type", "text/css");
+  svg.removeAttribute("xmlns");
+  svg.removeAttribute("xlink");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+  var source = new XMLSerializer()
+    .serializeToString(svg)
+    .replace("</style>", "<![CDATA[" + styles + "]]></style>");
+  var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+  var to_download = [doctype + source];
+  var image_string = "data:image/svg+xml;base66," + encodeURIComponent(to_download);
+  var img = new Image();
+  img.onload = function onload(){
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(onsuccess);
+  }
+  img.src = image_string;
+}
+
+/*
+function for the canvas and blob, actually downloads the thing
+*/
+function onsuccess(blob){
+  var url = window.URL.createObjectURL(blob);
+  var pom = document.createElement("a");
+  pom.setAttribute("download", "image.png");
+  pom.setAttribute("href", url);
+  $("body").append(pom);
+  pom.click();
+  pom.remove();
+}
+
+/*
+hold the string that has the tree style
+can't figure out how to access it from phylotree.css file
+so I've just retyped it here
+ommitted the on hover style, because that is irrelevant in a picture file 
+*/
+var styles = "";
+styles += ".tree-selection-brush .extent {fill-opacity: .05; stroke: #fff; shape-rendering: crispEdges;}";
+styles += ".tree-scale-bar text {font: sans-serif;}";
+styles += ".tree-scale-bar line, .tree-scale-bar path {fill: none; stroke: #000; shape-rendering: crispEdges;}";
+styles += ".node circle, .node ellipse, .node rect {fill: steelblue; stroke: black; stroke-width: 0.5px}";
+styles += ".internal-node circle, .internal-node ellipse, .internal-node rect{fill: #CCC; stroke: black; stroke-width: 0.5px;}";
+styles += ".node {font: 10px sans-serif;}";
+styles += ".node-selected {fill: #f00 !important;}";
+styles += ".node-collapsed circle, .node-collapsed ellipse, .node-collapsed rect {fill: black !important;}";
+styles += ".node-tagged {fill: #00f;}";
+styles += ".branch {fill: none; stroke: #999; stroke-width: 2px;}";
+styles += ".clade {fill: #1f77b4; stroke: #444; stroke-width: 2px; opacity: 0.5;}";
+styles += ".branch-selected {stroke: #f00 !important; stroke-width: 3px}";
+styles += ".branch-tagged {stroke: #00f; stroke-dasharray: 10,5; stroke-width: 2px;}";
+styles += ".branch-tracer {stroke: #bbb; stroke-dasharray: 3,4; stroke-width: 1px;}";
+styles += ".branch-multiple {stroke-dasharray: 5, 5, 1, 5; stroke-width: 3px;}";
+styles += ".tree-widget {}";
