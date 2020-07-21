@@ -267,6 +267,7 @@ function calcMaxDistance(){
     d += parseFloat(Number(c.attribute).toFixed(precision));
     children = c.children;
   }
+  d = parseFloat(Number(d).toFixed(precision));
   maxDistance = d;
 }
 
