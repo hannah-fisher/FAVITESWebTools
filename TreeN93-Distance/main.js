@@ -188,6 +188,7 @@ function doEverythingTreeClusters(){
   d3.layout.phylotree.trigger_refresh(tree);
   branchIndex = 0;
   tree = tree.style_edges(edgeStyler);
+  tree = tree.style_nodes(nodeStyler);
   d3.layout.phylotree.trigger_refresh(tree);
 }
 
