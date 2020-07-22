@@ -19,8 +19,16 @@ fileChooseExampleButton.addEventListener("click", function(){
   calculateNumLeaves();
   doEverythingTreeClusters();
   updateGuideTree();
+  setTimeout(() => {sortTreeUpButton.click();}, 500); //this is suss but idk what to do about it...
   thresholdSlider.setAttribute("min", "0");
   thresholdSlider.setAttribute("max", sliderSize.toString());
+  branchIndex = 0;
+  tree = tree.style_edges(edgeStylerDictFiller);
+  d3.layout.phylotree.trigger_refresh(tree);
+  branchIndex = 0;
+  tree = tree.style_edges(edgeStyler);
+  tree = tree.style_nodes(nodeStyler);
+  d3.layout.phylotree.trigger_refresh(tree);
 });
 buttons1Div.appendChild(fileChooseExampleButton);
 
@@ -178,6 +186,7 @@ for (var i = 0; i < 4; i ++){
     sortNodes(sortNodesUp);
     updateGuideTree();
     addCustomNodeMenus();
+    //getOrderedLeafNodeNames();
   });
   sizeButtons.push(b);
   buttons2Div.appendChild(b);
@@ -236,29 +245,29 @@ function sortNodes(asc) {
 }
 
 /*
-create button to save main svg
+create button to save main svg as png
 */
-var saveTreeSVGButton = document.createElement("button");
-saveTreeSVGButton.innerHTML = "Save Tree SVG";
-saveTreeSVGButton.addEventListener("click", function(){
-  saveTreeSVG(svg);
+var saveTreePNGButton = document.createElement("button");
+saveTreePNGButton.innerHTML = "Save Tree PNG";
+saveTreePNGButton.addEventListener("click", function(){
+  saveTreePNG(svg);
 });
-buttons1Div.appendChild(saveTreeSVGButton);
+buttons1Div.appendChild(saveTreePNGButton);
 
 /*
-create button to save guide tree svg
+create button to save guide tree svg as png
 */
-var saveGuideTreeSVGButton = document.createElement("button");
-saveGuideTreeSVGButton.innerHTML = "Save Guide Tree SVG";
-saveGuideTreeSVGButton.addEventListener("click", function(){
-  saveTreeSVG(svg_guideTree);
+var saveGuideTreePNGButton = document.createElement("button");
+saveGuideTreePNGButton.innerHTML = "Save Guide Tree PNG";
+saveGuideTreePNGButton.addEventListener("click", function(){
+  saveTreePNG(svg_guideTree);
 });
-buttons1Div.appendChild(saveGuideTreeSVGButton);
+buttons1Div.appendChild(saveGuideTreePNGButton);
 
 /*
-function to save an svg tree, called by button click
+function to save an svg tree as a png, called by button click
 */
-function saveTreeSVG(svg){
+function saveTreePNG(svg){
   svg.setAttribute("version", "1.1");
   var defsEl = document.createElement("defs");
   svg.insertBefore(defsEl, svg.firstChild);
@@ -303,25 +312,46 @@ function onsuccess(blob){
 }
 
 /*
-hold the string that has the tree style
-can't figure out how to access it from phylotree.css file
-so I've just retyped it here
-ommitted the on hover style, because that is irrelevant in a picture file
+create button to save main svg as svg
 */
-var styles = "";
-styles += ".tree-selection-brush .extent {fill-opacity: .05; stroke: #fff; shape-rendering: crispEdges;}";
-styles += ".tree-scale-bar text {font: sans-serif;}";
-styles += ".tree-scale-bar line, .tree-scale-bar path {fill: none; stroke: #000; shape-rendering: crispEdges;}";
-styles += ".node circle, .node ellipse, .node rect {fill: steelblue; stroke: black; stroke-width: 0.5px}";
-styles += ".internal-node circle, .internal-node ellipse, .internal-node rect{fill: #CCC; stroke: black; stroke-width: 0.5px;}";
-styles += ".node {font: 10px sans-serif;}";
-styles += ".node-selected {fill: #f00 !important;}";
-styles += ".node-collapsed circle, .node-collapsed ellipse, .node-collapsed rect {fill: black !important;}";
-styles += ".node-tagged {fill: #00f;}";
-styles += ".branch {fill: none; stroke: #999; stroke-width: 2px;}";
-styles += ".clade {fill: #1f77b4; stroke: #444; stroke-width: 2px; opacity: 0.5;}";
-styles += ".branch-selected {stroke: #f00 !important; stroke-width: 3px}";
-styles += ".branch-tagged {stroke: #00f; stroke-dasharray: 10,5; stroke-width: 2px;}";
-styles += ".branch-tracer {stroke: #bbb; stroke-dasharray: 3,4; stroke-width: 1px;}";
-styles += ".branch-multiple {stroke-dasharray: 5, 5, 1, 5; stroke-width: 3px;}";
-styles += ".tree-widget {}";
+var saveTreeSVGButton = document.createElement("button");
+saveTreeSVGButton.innerHTML = "Save Tree SVG";
+saveTreeSVGButton.addEventListener("click", function(){
+  saveTreeSVG(svg);
+});
+buttons1Div.appendChild(saveTreeSVGButton);
+
+/*
+create button to save guide tree svg as svg
+*/
+var saveTreeSVGButton = document.createElement("button");
+saveTreeSVGButton.innerHTML = "Save Guide Tree SVG";
+saveTreeSVGButton.addEventListener("click", function(){
+  saveTreeSVG(svg_guideTree);
+});
+buttons1Div.appendChild(saveTreeSVGButton);
+
+/*
+function to save an svg tree as a svg, called by button click
+*/
+function saveTreeSVG(svg){
+  svg.setAttribute("version", "1.1");
+  var defsEl = document.createElement("defs");
+  svg.insertBefore(defsEl, svg.firstChild);
+  var styleEl = document.createElement("style");
+  defsEl.appendChild(styleEl);
+  styleEl.setAttribute("type", "text/css");
+  svg.removeAttribute("xmlns");
+  svg.removeAttribute("xlink");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+  var source = new XMLSerializer()
+    .serializeToString(svg)
+    .replace("</style>", "<![CDATA[" + styles + "]]></style>");
+  var svgBlob = new Blob([source], {type:"image/svg+xml;charset=utf-8"});
+  var svgUrl = URL.createObjectURL(svgBlob);
+  var downloadLink = document.createElement("a");
+  downloadLink.href = svgUrl;
+  downloadLink.download = "image.svg";
+  downloadLink.click();
+}

@@ -40,7 +40,7 @@ var textDivStyle = {
   "position": "fixed",
   "width": "300px",
   "height": "115px",
-  "top": "250px",
+  "top": "275px",
   "right": "450px",
   "border-style": "solid",
   "border-color": "black",
@@ -58,7 +58,7 @@ add some style to the buttonsDiv
 var buttons1DivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "200px",
+  "height": "225px",
   "top": "25px",
   "right": "450px",
   "border-style": "solid",
@@ -89,3 +89,28 @@ var buttons2DivStyle = {
 for (var k of Object.keys(buttons2DivStyle)){
   buttons2Div.style[k] = buttons2DivStyle[k];
 }
+
+
+/*
+hold the string that has the tree style
+can't figure out how to access it from phylotree.css file
+so I've just retyped it here
+ommitted the on hover style, because that is irrelevant in a picture file
+*/
+var styles = "";
+styles += ".tree-selection-brush .extent {fill-opacity: .05; stroke: #fff; shape-rendering: crispEdges;}";
+styles += ".tree-scale-bar text {font: sans-serif;}";
+styles += ".tree-scale-bar line, .tree-scale-bar path {fill: none; stroke: #000; shape-rendering: crispEdges;}";
+styles += ".node circle, .node ellipse, .node rect {fill: steelblue; stroke: black; stroke-width: 0.5px}";
+styles += ".internal-node circle, .internal-node ellipse, .internal-node rect{fill: #CCC; stroke: black; stroke-width: 0.5px;}";
+styles += ".node {font: 10px sans-serif;}";
+styles += ".node-selected {fill: #f00 !important;}";
+styles += ".node-collapsed circle, .node-collapsed ellipse, .node-collapsed rect {fill: black !important;}";
+styles += ".node-tagged {fill: #00f;}";
+styles += ".branch {fill: none; stroke: #999; stroke-width: 2px;}";
+styles += ".clade {fill: #1f77b4; stroke: #444; stroke-width: 2px; opacity: 0.5;}";
+styles += ".branch-selected {stroke: #f00 !important; stroke-width: 3px}";
+styles += ".branch-tagged {stroke: #00f; stroke-dasharray: 10,5; stroke-width: 2px;}";
+styles += ".branch-tracer {stroke: #bbb; stroke-dasharray: 3,4; stroke-width: 1px;}";
+styles += ".branch-multiple {stroke-dasharray: 5, 5, 1, 5; stroke-width: 3px;}";
+styles += ".tree-widget {}";
