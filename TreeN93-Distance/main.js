@@ -51,7 +51,7 @@ var textDiv = document.createElement("DIV");
 var guideTreeDisplayDiv = document.createElement("DIV");
 var buttons1Div = document.createElement("DIV");
 var buttons2Div = document.createElement("DIV");
-var divList = [treeDisplayDiv, textDiv, guideTreeDisplayDiv, buttons1Div, buttons2Div];
+var divList = [treeDisplayDiv, textDiv, guideTreeDisplayDiv, buttons2Div, buttons1Div];
 for (var div of divList){
   document.body.appendChild(div);
 }

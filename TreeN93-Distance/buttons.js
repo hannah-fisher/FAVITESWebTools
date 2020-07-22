@@ -112,12 +112,31 @@ make buttons to preview and download cluster list
 */
 var previewClustersButton = document.createElement("button");
 var downloadClustersButton = document.createElement("button");
-previewClustersButton.innerHTML = "Preview Clusters";
-downloadClustersButton.innerHTML = "Download Clusters";
+previewClustersButton.innerHTML = " - Preview";
+downloadClustersButton.innerHTML = " - Download";
 previewClustersButton.addEventListener("click", previewClusters);
 downloadClustersButton.addEventListener("click", downloadClusters);
-buttons1Div.appendChild(previewClustersButton);
-buttons1Div.appendChild(downloadClustersButton);
+
+/*
+create clickable dropdown for previewing or downloading the clusters
+*/
+var clustersDropdown = document.createElement("button");
+clustersDropdown.innerHTML = "Save Clusters";
+var clustersDropdownContent = document.createElement("div");
+var clustersDropdownList = [previewClustersButton, downloadClustersButton];
+for (var b of clustersDropdownList){
+  clustersDropdownContent.appendChild(b);
+  clustersDropdownContent.appendChild(document.createElement("br"));
+}
+clustersDropdownContent.style["display"] = "none";
+clustersDropdown.onclick = function(){
+  if (clustersDropdownContent.style["display"] == "none"){
+    clustersDropdownContent.style["display"] = "block";
+  }
+  else{
+    clustersDropdownContent.style["display"] = "none";
+  }
+};
 
 /*
 function to get a string to display the clusters
@@ -168,15 +187,17 @@ function downloadClusters(){
 
 /*
 make buttons to compress and expand tree spacing
+for lists: expand x, compress x, expand y, compress y
 */
 var sizeButtons = [];
+var sizeButtonsIcons = ["fa fa-arrows-v", "fa fa-compress fa-rotate-135", "fa fa-arrows-h", "fa fa-compress fa-rotate-45"];
 for (var i = 0; i < 4; i ++){
   var b = document.createElement("button");
   b.style.margin = "3px";
   (i < 2) ? b.xyFunc = "X" : b.xyFunc = "Y";
   (i < 2) ? b.xyDisp = "Y" : b.xyDisp = "X";
   (i % 2 == 0) ? b.func = "Expand" : b.func = "Compress";
-  b.innerHTML = b.func + " " + b.xyDisp;
+  b.innerHTML = '<i class="' + sizeButtonsIcons[i] + '" ></i>';
   b.addEventListener("click", function(){
     var delta = 0;
     (this.func == "Expand") ? delta = 1 : delta = -1;
@@ -186,7 +207,6 @@ for (var i = 0; i < 4; i ++){
     sortNodes(sortNodesUp);
     updateGuideTree();
     addCustomNodeMenus();
-    //getOrderedLeafNodeNames();
   });
   sizeButtons.push(b);
   buttons2Div.appendChild(b);
@@ -198,7 +218,7 @@ so they are shown in prettier layout on tree
 */
 var sortTreeUpButton = document.createElement("button");
 sortTreeUpButton.style.margin = "3px";
-sortTreeUpButton.innerHTML += "Sort Up";
+sortTreeUpButton.innerHTML += '<i class="fa fa-sort-amount-desc" ></i>';
 sortTreeUpButton.addEventListener("click", function(){
   sortNodesUp = true;
   sortNodes(sortNodesUp);
@@ -206,7 +226,7 @@ sortTreeUpButton.addEventListener("click", function(){
 buttons2Div.appendChild(sortTreeUpButton);
 var sortTreeDownButton = document.createElement("button");
 sortTreeDownButton.style.margin = "3px";
-sortTreeDownButton.innerHTML += "Sort Down";
+sortTreeDownButton.innerHTML += '<i class="fa fa-sort-amount-asc" ></i>';
 sortTreeDownButton.addEventListener("click",function(){
   sortNodesUp = false;
   sortNodes(sortNodesUp);
@@ -248,21 +268,19 @@ function sortNodes(asc) {
 create button to save main svg as png
 */
 var saveTreePNGButton = document.createElement("button");
-saveTreePNGButton.innerHTML = "Save Tree PNG";
+saveTreePNGButton.innerHTML = " - Tree PNG";
 saveTreePNGButton.addEventListener("click", function(){
   saveTreePNG(svg);
 });
-buttons1Div.appendChild(saveTreePNGButton);
 
 /*
 create button to save guide tree svg as png
 */
 var saveGuideTreePNGButton = document.createElement("button");
-saveGuideTreePNGButton.innerHTML = "Save Guide Tree PNG";
+saveGuideTreePNGButton.innerHTML = " - Guide Tree PNG";
 saveGuideTreePNGButton.addEventListener("click", function(){
   saveTreePNG(svg_guideTree);
 });
-buttons1Div.appendChild(saveGuideTreePNGButton);
 
 /*
 function to save an svg tree as a png, called by button click
@@ -315,21 +333,19 @@ function onsuccess(blob){
 create button to save main svg as svg
 */
 var saveTreeSVGButton = document.createElement("button");
-saveTreeSVGButton.innerHTML = "Save Tree SVG";
+saveTreeSVGButton.innerHTML = " - Tree SVG";
 saveTreeSVGButton.addEventListener("click", function(){
   saveTreeSVG(svg);
 });
-buttons1Div.appendChild(saveTreeSVGButton);
 
 /*
 create button to save guide tree svg as svg
 */
-var saveTreeSVGButton = document.createElement("button");
-saveTreeSVGButton.innerHTML = "Save Guide Tree SVG";
-saveTreeSVGButton.addEventListener("click", function(){
+var saveGuideTreeSVGButton = document.createElement("button");
+saveGuideTreeSVGButton.innerHTML = " - Guide Tree SVG";
+saveGuideTreeSVGButton.addEventListener("click", function(){
   saveTreeSVG(svg_guideTree);
 });
-buttons1Div.appendChild(saveTreeSVGButton);
 
 /*
 function to save an svg tree as a svg, called by button click
@@ -355,3 +371,33 @@ function saveTreeSVG(svg){
   downloadLink.download = "image.svg";
   downloadLink.click();
 }
+
+/*
+create clickable dropdown for saving the tree or guide tree as png or svg
+*/
+var saveTreeDropdown = document.createElement("button");
+saveTreeDropdown.innerHTML = "Save Trees";
+var saveTreeDropdownContent = document.createElement("div");
+var saveTreeDropdownList = [saveTreePNGButton, saveTreeSVGButton, saveGuideTreePNGButton, saveGuideTreeSVGButton];
+for (var b of saveTreeDropdownList){
+  saveTreeDropdownContent.appendChild(b);
+  saveTreeDropdownContent.appendChild(document.createElement("br"));
+}
+saveTreeDropdownContent.style["display"] = "none";
+console.log(clustersDropdown.style.width);
+saveTreeDropdown.onclick = function(){
+  if (saveTreeDropdownContent.style["display"] == "none"){
+    saveTreeDropdownContent.style["display"] = "block";
+  }
+  else{
+    saveTreeDropdownContent.style["display"] = "none";
+  }
+};
+
+/*
+append the dropdown buttons to the buttons1div
+*/
+buttons1Div.appendChild(clustersDropdown);
+buttons1Div.appendChild(saveTreeDropdown);
+buttons1Div.appendChild(clustersDropdownContent);
+buttons1Div.appendChild(saveTreeDropdownContent);

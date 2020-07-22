@@ -40,7 +40,7 @@ var textDivStyle = {
   "position": "fixed",
   "width": "300px",
   "height": "115px",
-  "top": "275px",
+  "top": "260px",
   "right": "450px",
   "border-style": "solid",
   "border-color": "black",
@@ -58,7 +58,7 @@ add some style to the buttonsDiv
 var buttons1DivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "225px",
+  "height": "175px",
   "top": "25px",
   "right": "450px",
   "border-style": "solid",
@@ -76,10 +76,10 @@ add some style to the buttons2 div
 */
 var buttons2DivStyle = {
   "position": "fixed",
-  "width": "200px",
-  "height": "110px",
-  "top": "25px",
-  "right": "775px",
+  "width": "300px",
+  "height": "45px",
+  "top": "207px",
+  "right": "450px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
@@ -90,6 +90,26 @@ for (var k of Object.keys(buttons2DivStyle)){
   buttons2Div.style[k] = buttons2DivStyle[k];
 }
 
+/*
+add style to save clusters and save trees buttons and dropdowns
+*/
+clustersDropdown.style["width"] = "120px";
+clustersDropdown.style["margin-left"] = "3px";
+clustersDropdown.style["margin-right"] = "3px";
+saveTreeDropdown.style["width"] = "120px";
+saveTreeDropdown.style["margin-left"] = "3px";
+saveTreeDropdown.style["margin-right"] = "3px";
+for (var b of clustersDropdownList){
+  b.style["width"] = "120px";
+  b.style["margin-left"] = "3px";
+  b.style["margin-right"] = "3px";
+}
+for (var b of saveTreeDropdownList){
+  b.style["width"] = "120px";
+  b.style["margin-left"] = "3px";
+  b.style["margin-right"] = "3px";
+}
+saveTreeDropdownContent.style["margin-left"] = "126px";
 
 /*
 hold the string that has the tree style
