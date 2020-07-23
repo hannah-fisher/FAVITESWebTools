@@ -16,7 +16,8 @@ var guideTreeDisplayDivStyle = {
   "background": "white",
   "width": (guideWidth + "px"),
   "height": (guideHeight + "px"),
-  "padding": "3px"
+  "padding": "3px",
+  "border-radius": "5px"
 };
 for (var k of Object.keys(guideTreeDisplayDivStyle)){
   guideTreeDisplayDiv.style[k] = guideTreeDisplayDivStyle[k];
@@ -39,14 +40,16 @@ add some style to the textDiv
 var textDivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "115px",
-  "top": "260px",
-  "right": "450px",
+  "height": "130px",
+  "top": "295px",
+  "right": "435px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
   "background": "white",
-  "padding": "5px"
+  "padding": "5px",
+  "padding-top": "12px",
+  "border-radius": "5px"
 };
 for (var k of Object.keys(textDivStyle)){
   textDiv.style[k] = textDivStyle[k];
@@ -58,14 +61,15 @@ add some style to the buttonsDiv
 var buttons1DivStyle = {
   "position": "fixed",
   "width": "300px",
-  "height": "175px",
+  "height": "205px",
   "top": "25px",
-  "right": "450px",
+  "right": "435px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
   "background": "white",
-  "padding": "5px"
+  "padding": "5px",
+  "border-radius": "5px"
 };
 for (var k of Object.keys(buttons1DivStyle)){
   buttons1Div.style[k] = buttons1DivStyle[k];
@@ -78,13 +82,14 @@ var buttons2DivStyle = {
   "position": "fixed",
   "width": "300px",
   "height": "45px",
-  "top": "207px",
-  "right": "450px",
+  "top": "240px",
+  "right": "435px",
   "border-style": "solid",
   "border-color": "black",
   "border-width": "1px",
   "background": "white",
-  "padding": "5px"
+  "padding": "5px",
+  "border-radius": "5px"
 };
 for (var k of Object.keys(buttons2DivStyle)){
   buttons2Div.style[k] = buttons2DivStyle[k];

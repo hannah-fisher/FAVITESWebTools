@@ -3,6 +3,13 @@ A file to create and add functionality to the buttons on the page
 */
 
 /*
+add some text to the buttons1 div
+*/
+var chooseTreeText = document.createElement("p");
+chooseTreeText.innerHTML += "Choose Tree:";
+buttons1Div.appendChild(chooseTreeText);
+
+/*
 make button to set the tree to the example tree file
 put it in the buttonsDiv
 */
@@ -31,6 +38,7 @@ fileChooseExampleButton.addEventListener("click", function(){
   d3.layout.phylotree.trigger_refresh(tree);
 });
 buttons1Div.appendChild(fileChooseExampleButton);
+buttons1Div.appendChild(document.createElement("BR"));
 
 /*
 make the button to select a nwk file
@@ -40,6 +48,13 @@ var fileInputter = document.createElement("INPUT");
 fileInputter.setAttribute("type", "file");
 buttons1Div.appendChild(fileInputter);
 buttons1Div.appendChild(document.createElement("BR"));
+
+/*
+add some text to the buttons1 div
+*/
+var chooseThresholdText = document.createElement("span");
+chooseThresholdText.innerHTML += "Choose Threshold: ";
+buttons1Div.appendChild(chooseThresholdText);
 
 /*
 make the text input to set the threshold value
