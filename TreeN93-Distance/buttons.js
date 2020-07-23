@@ -265,43 +265,31 @@ function sortNodes(asc) {
 }
 
 /*
-create button to save main svg as png
+function called by save tree as png and as svg
 */
-var saveTreePNGButton = document.createElement("button");
-saveTreePNGButton.innerHTML = " - Tree PNG";
-saveTreePNGButton.addEventListener("click", function(){
-  saveTreePNG(svg);
-});
-
-/*
-create button to save guide tree svg as png
-*/
-var saveGuideTreePNGButton = document.createElement("button");
-saveGuideTreePNGButton.innerHTML = " - Guide Tree PNG";
-saveGuideTreePNGButton.addEventListener("click", function(){
-  saveTreePNG(svg_guideTree);
-});
-
-/*
-function to save an svg tree as a png, called by button click
-*/
-function saveTreePNG(svg){
+function saveTreeBoth(svg){
   svg.setAttribute("version", "1.1");
+  svg.removeAttribute("xmlns");
+  svg.removeAttribute("xlink");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
   var defsEl = document.createElement("defs");
   svg.insertBefore(defsEl, svg.firstChild);
   var styleEl = document.createElement("style");
   defsEl.appendChild(styleEl);
   styleEl.setAttribute("type", "text/css");
-  svg.removeAttribute("xmlns");
-  svg.removeAttribute("xlink");
-  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
-  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
   var source = new XMLSerializer()
     .serializeToString(svg)
     .replace("</style>", "<![CDATA[" + styles + "]]></style>");
+  return source;
+}
+
+/*
+function to save an svg tree as a png, called by button click
+*/
+function saveTreePNG(svg){
+  var source = saveTreeBoth(svg);
   var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
-  var to_download = [doctype + source];
-  var image_string = "data:image/svg+xml;base66," + encodeURIComponent(to_download);
   var img = new Image();
   img.onload = function onload(){
     var canvas = document.createElement("canvas");
@@ -311,59 +299,22 @@ function saveTreePNG(svg){
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(onsuccess);
+    canvas.toBlob(function(blob){
+      var url = window.URL.createObjectURL(blob);
+      var downloadLink = document.createElement("a");
+      downloadLink.download = "image.png";
+      downloadLink.href = url;
+      downloadLink.click();
+    })
   }
-  img.src = image_string;
+  img.src = "data:image/svg+xml;base66," + encodeURIComponent([doctype + source]);
 }
-
-/*
-function for the canvas and blob, actually downloads the thing
-*/
-function onsuccess(blob){
-  var url = window.URL.createObjectURL(blob);
-  var pom = document.createElement("a");
-  pom.setAttribute("download", "image.png");
-  pom.setAttribute("href", url);
-  $("body").append(pom);
-  pom.click();
-  pom.remove();
-}
-
-/*
-create button to save main svg as svg
-*/
-var saveTreeSVGButton = document.createElement("button");
-saveTreeSVGButton.innerHTML = " - Tree SVG";
-saveTreeSVGButton.addEventListener("click", function(){
-  saveTreeSVG(svg);
-});
-
-/*
-create button to save guide tree svg as svg
-*/
-var saveGuideTreeSVGButton = document.createElement("button");
-saveGuideTreeSVGButton.innerHTML = " - Guide Tree SVG";
-saveGuideTreeSVGButton.addEventListener("click", function(){
-  saveTreeSVG(svg_guideTree);
-});
 
 /*
 function to save an svg tree as a svg, called by button click
 */
 function saveTreeSVG(svg){
-  svg.setAttribute("version", "1.1");
-  var defsEl = document.createElement("defs");
-  svg.insertBefore(defsEl, svg.firstChild);
-  var styleEl = document.createElement("style");
-  defsEl.appendChild(styleEl);
-  styleEl.setAttribute("type", "text/css");
-  svg.removeAttribute("xmlns");
-  svg.removeAttribute("xlink");
-  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
-  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-  var source = new XMLSerializer()
-    .serializeToString(svg)
-    .replace("</style>", "<![CDATA[" + styles + "]]></style>");
+  var source = saveTreeBoth(svg);
   var svgBlob = new Blob([source], {type:"image/svg+xml;charset=utf-8"});
   var svgUrl = URL.createObjectURL(svgBlob);
   var downloadLink = document.createElement("a");
@@ -374,17 +325,23 @@ function saveTreeSVG(svg){
 
 /*
 create clickable dropdown for saving the tree or guide tree as png or svg
+and create the four save buttons that go in the dropdown
 */
 var saveTreeDropdown = document.createElement("button");
 saveTreeDropdown.innerHTML = "Save Trees";
 var saveTreeDropdownContent = document.createElement("div");
-var saveTreeDropdownList = [saveTreePNGButton, saveTreeSVGButton, saveGuideTreePNGButton, saveGuideTreeSVGButton];
-for (var b of saveTreeDropdownList){
+var saveTreeDropdownList = [];
+var saveTreeLabels = [" - Tree PNG", " - Tree SVG", " - Guide Tree PNG", " - Guide Tree SVG"];
+var saveTreeFuncs = [function(){saveTreePNG(svg);}, function(){saveTreeSVG(svg);}, function(){saveTreePNG(svg_guideTree);}, function(){saveTreeSVG(svg_guideTree);}];
+for (var i = 0; i < 4; i ++){
+  var b = document.createElement("button");
+  b.innerHTML = saveTreeLabels[i];
+  b.addEventListener("click", saveTreeFuncs[i]);
+  saveTreeDropdownList.push(b);
   saveTreeDropdownContent.appendChild(b);
   saveTreeDropdownContent.appendChild(document.createElement("br"));
 }
 saveTreeDropdownContent.style["display"] = "none";
-console.log(clustersDropdown.style.width);
 saveTreeDropdown.onclick = function(){
   if (saveTreeDropdownContent.style["display"] == "none"){
     saveTreeDropdownContent.style["display"] = "block";
