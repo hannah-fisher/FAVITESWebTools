@@ -1,21 +1,21 @@
 /*
-Tool to view phylogenetic trees
-and view clusters based on TN93 distance.
+Tool to view phylogenetic trees and view clusters based on TN93 distance.
 User can input tree files in the newick format.
 The threshold can be set in an input text box, or using a range slider.
 The resulting node clusters can be viewed and downloaded.
+And the tree visualization and guide tree can be downloaded as png or svg.
 
-assumptions:
+Assumptions:
   newick inputted file is formatted correctly
   all leaf nodes are exactly the same distance from the root
-  every node has a unique name
+  every leaf node has a unique name
 
-things to note:
+Things to note:
   threshold cuttof is >=, not >
   if a cluster consists of a single leaf, no branch will be colored for that cluster
   threshold is distance from leaves, not distance from root
   branch lengths could be zero
-  SOMETIMES THERE ARE CLUSTER COLLECTION MISTAKES
+  SOMETIMES THERE ARE SLIGHT CLUSTER COLLECTION MISTAKES
   THIS IS BECAUSE SOME DECIMAL NUMBERS CANNOT BE REPRESENTED EXACTLY IN BINARY
 */
 
